@@ -1,0 +1,31 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fredoka:wght@300..700&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-outfit: "Outfit", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-poppins-extrabold: "Poppins-ExtraBold", sans-serif;
+
+  --color-primary-dark: #15382D;
+  --color-primary-light: #F2FCE2;
+  --color-accent: #C1E1C1;
+  --color-text-dark: #1F2937;
+  --color-text-light: #F9FAFB;
+  --color-white: #FFFFFF;
+  
+  --color-customBlue-100: #3361ac; 
+  --color-latar: #F2FCE2; 
+  --color-teks: #1F2937;
+  --color-teks-samping: #4B5563;
+  --color-garis: #E5E7EB;
+  --color-hijau: #15382D; 
+  --color-merah: #ef4444;
+  --color-biru: #3b82f6;
+  --color-kuning: #f59e0b;
+}
+
+body {
+  @apply font-outfit bg-latar text-teks;
+  margin: 0;
+  min-height: 100vh;
+}
