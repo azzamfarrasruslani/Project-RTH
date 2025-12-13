@@ -28,6 +28,26 @@ const MapComponent = () => {
   // Coordinates for Pekanbaru
   const position = [0.507068, 101.447779]; // Pekanbaru Coordinate
 
+  // Dummy Data Markers (Sebaiknya sama dengan di DetailPage atau dari API)
+  const markers = [
+    {
+      id: 1,
+      nama: "Taman Kota Pekanbaru",
+      kategori: "Taman Kota",
+      luas: "2.5 Ha",
+      posisi: [0.52, 101.45],
+      color: "text-green-800 bg-green-100",
+    },
+    {
+      id: 2,
+      nama: "Hutan Kota Diponegoro",
+      kategori: "Hutan Kota",
+      luas: "5.4 Ha",
+      posisi: [0.49, 101.43],
+      color: "text-emerald-800 bg-emerald-100",
+    },
+  ];
+
   return (
     <MapContainer
       center={position}
@@ -57,11 +77,6 @@ const MapComponent = () => {
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           />
         </LayersControl.BaseLayer>
-
-        {/* Example Overlay (Optional) */}
-        {/* <LayersControl.Overlay checked name="RTH Markers">
-           <LayerGroup>...</LayerGroup>
-        </LayersControl.Overlay> */}
       </LayersControl>
 
       {/* RTH Markers */}
@@ -76,44 +91,32 @@ const MapComponent = () => {
         </Popup>
       </Marker>
 
-      {/* Dummy Data - Taman Kota */}
-      <Marker position={[0.52, 101.45]}>
-        <Popup className="font-outfit">
-          <div className="min-w-[150px]">
-            <h3 className="font-bold text-primary-dark mb-1">
-              Taman Kota Pekanbaru
-            </h3>
-            <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-medium">
-              Taman Kota
-            </span>
-            <p className="text-xs text-gray-600 mt-2">
-              Luas Area: <strong>2.5 Ha</strong>
-              <br />
-              Fasilitas: Jogging Track, WiFi
-            </p>
-          </div>
-        </Popup>
-      </Marker>
-
-      {/* Dummy Data - Hutan Kota */}
-      <Marker position={[0.49, 101.43]}>
-        <Popup className="font-outfit">
-          <div className="min-w-[150px]">
-            <h3 className="font-bold text-primary-dark mb-1">
-              Hutan Kota Diponegoro
-            </h3>
-            <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-medium">
-              Hutan Kota
-            </span>
-            <p className="text-xs text-gray-600 mt-2">
-              Luas Area: <strong>5.4 Ha</strong>
-              <br />
-              Status:{" "}
-              <span className="text-green-600 font-semibold">Terawat</span>
-            </p>
-          </div>
-        </Popup>
-      </Marker>
+      {/* Render Markers from Array */}
+      {markers.map((item) => (
+        <Marker key={item.id} position={item.posisi}>
+          <Popup className="font-outfit">
+            <div className="min-w-[160px]">
+              <h3 className="font-bold text-primary-dark mb-1 text-sm">
+                {item.nama}
+              </h3>
+              <span
+                className={`${item.color} text-[10px] px-2 py-0.5 rounded-full font-medium inline-block mb-2`}
+              >
+                {item.kategori}
+              </span>
+              <p className="text-xs text-gray-600 mb-3">
+                Luas Area: <strong>{item.luas}</strong>
+              </p>
+              <a
+                href={`/peta/${item.id}`}
+                className="block w-full text-center bg-primary-dark hover:bg-green-800 text-white text-xs font-medium py-1.5 rounded transition-colors"
+              >
+                Lihat Detail
+              </a>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
     </MapContainer>
   );
 };

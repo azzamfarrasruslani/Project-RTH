@@ -9,6 +9,7 @@ import ErrorPage from "./pages/ErrorPage";
 // Lazy load pages
 const Beranda = React.lazy(() => import("./pages/guest/Beranda"));
 const Peta = React.lazy(() => import("./pages/guest/Peta"));
+const DetailRTH = React.lazy(() => import("./pages/guest/DetailRTH"));
 const TentangKami = React.lazy(() => import("./pages/guest/TentangKami"));
 const Login = React.lazy(() => import("./pages/auth/Login"));
 const Dashboard = React.lazy(() => import("./pages/admin/Dashboard"));
@@ -24,6 +25,7 @@ function App() {
           <Route element={<GuestLayout />}>
             <Route path="/" element={<Beranda />} />
             <Route path="/peta" element={<Peta />} />
+            <Route path="/peta/:id" element={<DetailRTH />} />
             <Route path="/tentang" element={<TentangKami />} />
             <Route path="/error/:errorCode" element={<ErrorPage />} />
             <Route path="*" element={<ErrorPage />} />
