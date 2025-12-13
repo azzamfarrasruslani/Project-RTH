@@ -25,7 +25,7 @@ const Peta = () => {
   };
 
   return (
-    <div className="relative flex h-[calc(100vh-100px)] overflow-hidden gap-0 lg:gap-6">
+    <div className="relative flex h-[calc(100vh-100px)] overflow-hidden">
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div
@@ -35,16 +35,18 @@ const Peta = () => {
       )}
 
       {/* Sidebar Filters */}
+      {/* Sidebar Filters - Floating on Desktop */}
       <aside
         className={`
-          absolute lg:static top-0 left-0 z-50 h-full w-4/5 max-w-[320px] lg:w-80 
-          bg-white shadow-2xl lg:shadow-sm border-r lg:border lg:border-gray-100 lg:rounded-2xl
-          flex flex-col transition-transform duration-300 ease-in-out
-          ${
-            isSidebarOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
-          }
+          absolute z-50 bg-white shadow-2xl rounded-tr-2xl rounded-br-2xl lg:rounded-2xl
+          flex flex-col transition-transform duration-300 ease-in-out border border-gray-100
+          
+          /* Mobile Sizing & Pos */
+          top-0 left-0 h-full w-4/5 max-w-[320px] 
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+
+          /* Desktop Sizing & Pos (Floating Panel) */
+          lg:translate-x-0 lg:top-4 lg:left-4 lg:h-[calc(100%-32px)] lg:w-80
         `}
       >
         <div className="p-6 pb-2 flex-shrink-0 flex justify-between items-start">
@@ -148,11 +150,11 @@ const Peta = () => {
       </aside>
 
       {/* Map Area */}
-      <main className="flex-1 bg-white rounded-none lg:rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative h-full">
+      <main className="w-full h-full bg-white relative">
         <MapComponent />
-
+        
         {/* Mobile Filter Toggle */}
-        <button
+        <button 
           onClick={() => setIsSidebarOpen(true)}
           className="lg:hidden absolute bottom-6 right-6 bg-primary-dark text-white p-4 rounded-full shadow-lg z-[30] hover:scale-105 active:scale-95 transition-all duration-200 group"
           aria-label="Filter Peta"
