@@ -9,6 +9,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { rthService } from "../../services/rthService";
+import LocationPicker from "../../components/admin/LocationPicker";
 
 const AddDataRTH = () => {
   const navigate = useNavigate();
@@ -153,6 +154,27 @@ const AddDataRTH = () => {
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <FaMapMarkerAlt className="text-primary-dark" /> Lokasi & Detail
               </h3>
+
+              {/* Map Picker */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Pilih Lokasi di Peta
+                </label>
+                <div className="rounded-xl overflow-hidden border border-gray-100">
+                  <LocationPicker
+                    initialLat={0.507068}
+                    initialLong={101.447779}
+                    onConfirm={(lat, lng) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        lat: lat,
+                        long: lng,
+                      }));
+                    }}
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -169,7 +191,10 @@ const AddDataRTH = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Latitude
+                    Latitude{" "}
+                    <span className="text-xs text-gray-400 font-normal">
+                      (Otomatis/Manual)
+                    </span>
                   </label>
                   <input
                     type="number"
@@ -183,7 +208,10 @@ const AddDataRTH = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Longitude
+                    Longitude{" "}
+                    <span className="text-xs text-gray-400 font-normal">
+                      (Otomatis/Manual)
+                    </span>
                   </label>
                   <input
                     type="number"
