@@ -5,6 +5,7 @@ import AuthLayout from "./layout/AuthLayout";
 import AdminLayout from "./layout/AdminLayout";
 import Loading from "./components/Loading";
 import ErrorPage from "./pages/ErrorPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy load pages
 const Beranda = React.lazy(() => import("./pages/guest/Beranda"));
@@ -30,12 +31,18 @@ function App() {
             <Route path="/error/:errorCode" element={<ErrorPage />} />
             <Route path="*" element={<ErrorPage />} />
           </Route>
-
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
           </Route>
 
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="data-rth" element={<DataRTH />} />
             <Route path="data-rth/add" element={<AddDataRTH />} />

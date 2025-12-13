@@ -8,11 +8,13 @@ import {
   FaTree,
   FaTimes,
 } from "react-icons/fa";
+import { rthService } from "../../services/rthService";
 
 const EditDataRTH = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   // State untuk form data
   const [formData, setFormData] = useState({
@@ -21,30 +23,47 @@ const EditDataRTH = () => {
     status: "Aktif",
     deskripsi: "",
     alamat: "",
-    latitude: "",
-    longitude: "",
+    lat: "",
+    long: "",
     luas: "",
     tahun: "",
   });
 
-  // Simulasi Fetch Data berdasarkan ID
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [existingImage, setExistingImage] = useState(null);
+
+  // Fetch Data
   useEffect(() => {
-    // Di sini harusnya API Call, tapi kita mock data dulu
-    setTimeout(() => {
-      setFormData({
-        nama: "Taman Kota Pekanbaru",
-        kategori: "Taman Kota",
-        status: "Aktif",
-        deskripsi:
-          "Taman Ruang Terbuka Hijau utama di pusat kota Pekanbaru dengan fasilitas jogging track.",
-        alamat: "Jl. Jendral Sudirman No. 123",
-        latitude: "0.507068",
-        longitude: "101.447779",
-        luas: "2.5",
-        tahun: "2010",
-      });
-    }, 500);
-  }, [id]);
+    const loadData = async () => {
+      try {
+        const data = await rthService.getById(id);
+        if (data) {
+          setFormData({
+            nama: data.nama || "",
+            kategori: data.kategori || "Taman Kota",
+            status: data.status || "Aktif",
+            deskripsi: data.deskripsi || "",
+            alamat: data.alamat || "",
+            lat: data.lat || "",
+            long: data.long || "",
+            luas: data.luas || "",
+            tahun: data.tahun || "",
+          });
+          if (data.foto_utama) {
+            setExistingImage(data.foto_utama);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        alert("Gagal memuat data.");
+        navigate("/admin/data-rth");
+      } finally {
+        setFetching(false);
+      }
+    };
+    loadData();
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,15 +73,31 @@ const EditDataRTH = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API Update
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await rthService.update(id, formData, imageFile);
       navigate("/admin/data-rth");
-    }, 1500);
+    } catch (error) {
+      console.error("Error updating data:", error);
+      alert("Gagal memperbarui data. Cek koneksi internet.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (fetching) {
+    return <div className="text-center py-20">Memuat data...</div>;
+  }
 
   return (
     <div className="space-y-6 font-outfit max-w-5xl mx-auto">
@@ -176,9 +211,10 @@ const EditDataRTH = () => {
                     Latitude
                   </label>
                   <input
-                    type="text"
-                    name="latitude"
-                    value={formData.latitude}
+                    type="number"
+                    step="any"
+                    name="lat"
+                    value={formData.lat}
                     onChange={handleChange}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />
@@ -188,9 +224,10 @@ const EditDataRTH = () => {
                     Longitude
                   </label>
                   <input
-                    type="text"
-                    name="longitude"
-                    value={formData.longitude}
+                    type="number"
+                    step="any"
+                    name="long"
+                    value={formData.long}
                     onChange={handleChange}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />
@@ -201,7 +238,7 @@ const EditDataRTH = () => {
                   </label>
                   <input
                     type="number"
-                    step="0.1"
+                    step="0.01"
                     name="luas"
                     value={formData.luas}
                     onChange={handleChange}
@@ -232,7 +269,13 @@ const EditDataRTH = () => {
                 Foto Lokasi
               </h3>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
+              <label className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
+                <input
+                  type="file"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="hidden"
+                />
                 <div className="w-12 h-12 bg-primary-light/20 text-primary-dark rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   <FaCloudUploadAlt className="text-xl" />
                 </div>
@@ -242,32 +285,60 @@ const EditDataRTH = () => {
                 <p className="text-xs text-gray-400 mt-1">
                   Maksimal 5MB (JPG, PNG)
                 </p>
-              </div>
+              </label>
 
               <div className="mt-4 space-y-3">
-                <div className="flex items-center gap-3 p-2 border border-gray-100 rounded-lg bg-gray-50">
-                  <div className="w-10 h-10 bg-gray-200 rounded-md overflow-hidden relative">
-                    <img
-                      src="https://via.placeholder.com/150"
-                      alt="Exisitng"
-                      className="w-full h-full object-cover"
-                    />
+                {/* Preview New Image */}
+                {imagePreview && (
+                  <div className="flex items-center gap-3 p-2 border border-gray-100 rounded-lg bg-gray-50">
+                    <div className="w-10 h-10 bg-gray-200 rounded-md overflow-hidden relative">
+                      <img
+                        src={imagePreview}
+                        alt="New Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-xs font-medium text-green-700 truncate">
+                        Foto Baru: {imageFile.name}
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        {(imageFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                      }}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <FaTimes />
+                    </button>
                   </div>
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-xs font-medium text-gray-700 truncate">
-                      taman_kota_existing.jpg
-                    </p>
-                    <p className="text-[10px] text-gray-400">
-                      Terbaca dari server
-                    </p>
+                )}
+
+                {/* Existing Image */}
+                {existingImage && !imagePreview && (
+                  <div className="flex items-center gap-3 p-2 border border-blue-50 bg-blue-50/50 rounded-lg">
+                    <div className="w-10 h-10 bg-gray-200 rounded-md overflow-hidden relative">
+                      <img
+                        src={existingImage}
+                        alt="Existing"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-xs font-medium text-gray-700 truncate">
+                        Foto Saat Ini
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        Tersimpan di server
+                      </p>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    className="text-gray-400 hover:text-red-500"
-                  >
-                    <FaTimes />
-                  </button>
-                </div>
+                )}
               </div>
             </div>
 

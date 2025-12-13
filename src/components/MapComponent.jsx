@@ -28,25 +28,37 @@ const MapComponent = () => {
   // Coordinates for Pekanbaru
   const position = [0.507068, 101.447779]; // Pekanbaru Coordinate
 
-  // Dummy Data Markers (Sebaiknya sama dengan di DetailPage atau dari API)
-  const markers = [
-    {
-      id: 1,
-      nama: "Taman Kota Pekanbaru",
-      kategori: "Taman Kota",
-      luas: "2.5 Ha",
-      posisi: [0.52, 101.45],
-      color: "text-green-800 bg-green-100",
-    },
-    {
-      id: 2,
-      nama: "Hutan Kota Diponegoro",
-      kategori: "Hutan Kota",
-      luas: "5.4 Ha",
-      posisi: [0.49, 101.43],
-      color: "text-emerald-800 bg-emerald-100",
-    },
-  ];
+  // Fetch Markers
+  const [markers, setMarkers] = React.useState([]);
+
+  React.useEffect(() => {
+    const fetchMarkers = async () => {
+      try {
+        const { rthService } = await import("../services/rthService");
+        const data = await rthService.getAll();
+        if (data) {
+          const mappedMarkers = data
+            .map((item) => ({
+              id: item.id,
+              nama: item.nama,
+              kategori: item.kategori,
+              luas: item.luas + " Ha",
+              posisi: [item.lat || 0, item.long || 0],
+              // Logic warna marker berdasarkan kategori (bisa disesuaikan nanti)
+              color:
+                item.kategori === "Hutan Kota"
+                  ? "text-emerald-800 bg-emerald-100"
+                  : "text-green-800 bg-green-100",
+            }))
+            .filter((m) => m.posisi[0] !== 0); // Filter invalid coordinates
+          setMarkers(mappedMarkers);
+        }
+      } catch (e) {
+        console.error("Error loading markers:", e);
+      }
+    };
+    fetchMarkers();
+  }, []);
 
   return (
     <MapContainer

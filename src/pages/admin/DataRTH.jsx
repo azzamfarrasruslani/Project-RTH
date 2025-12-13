@@ -14,65 +14,51 @@ import {
 const DataRTH = () => {
   const navigate = useNavigate();
 
-  // Dummy Data
-  const [dataRTH, setDataRTH] = useState([
-    {
-      id: 1,
-      nama: "Taman Kota Pekanbaru",
-      kategori: "Taman Kota",
-      luas: 2.5,
-      lokasi: "Jl. Jend. Sudirman",
-      status: "Aktif",
-    },
-    {
-      id: 2,
-      nama: "Hutan Kota Diponegoro",
-      kategori: "Hutan Kota",
-      luas: 5.4,
-      lokasi: "Jl. Diponegoro",
-      status: "Aktif",
-    },
-    {
-      id: 3,
-      nama: "RTH Putri Kaca Mayang",
-      kategori: "Taman bermain",
-      luas: 1.2,
-      lokasi: "Jl. Jend. Sudirman",
-      status: "Perbaikan",
-    },
-    {
-      id: 4,
-      nama: "Taman Labuai",
-      kategori: "Taman Kota",
-      luas: 0.8,
-      lokasi: "Jl. Labuai",
-      status: "Aktif",
-    },
-    {
-      id: 5,
-      nama: "Kampus PCR Green Area",
-      kategori: "Institusi",
-      luas: 3.0,
-      lokasi: "Rumbai",
-      status: "Aktif",
-    },
-    {
-      id: 6,
-      nama: "Danau Buatan Rumbai",
-      kategori: "Wisata Alam",
-      luas: 12.5,
-      lokasi: "Rumbai Pesisir",
-      status: "Aktif",
-    },
-    {
-      id: 7,
-      nama: "Taman Median Jalan Arifin",
-      kategori: "Jalur Hijau",
-      luas: 1.5,
-      lokasi: "Jl. Arifin Ahmad",
-      status: "Pemeliharaan",
-    },
-  ]);
+  // Fetch RTH Data
+  const [dataRTH, setDataRTH] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const data = await import("../../services/rthService").then((m) =>
+        m.rthService.getAll()
+      );
+      if (data) {
+        // Map backend fields to frontend fields
+        const mappedData = data.map((item) => ({
+          id: item.id,
+          nama: item.nama,
+          kategori: item.kategori,
+          luas: item.luas,
+          lokasi: item.alamat, // Mapping 'alamat' to 'lokasi' for table display
+          status: item.status,
+        }));
+        setDataRTH(mappedData);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+      try {
+        await import("../../services/rthService").then((m) =>
+          m.rthService.delete(id)
+        );
+        fetchData(); // Refresh data
+      } catch (error) {
+        console.error("Error deleting data:", error);
+        alert("Gagal menghapus data.");
+      }
+    }
+  };
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -232,6 +218,7 @@ const DataRTH = () => {
                           <FaEdit />
                         </button>
                         <button
+                          onClick={() => handleDelete(item.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="Hapus"
                         >

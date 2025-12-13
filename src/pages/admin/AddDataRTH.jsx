@@ -6,20 +6,56 @@ import {
   FaCloudUploadAlt,
   FaMapMarkerAlt,
   FaTree,
+  FaTimes,
 } from "react-icons/fa";
+import { rthService } from "../../services/rthService";
 
 const AddDataRTH = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({
+    nama: "",
+    kategori: "Taman Kota",
+    status: "Aktif",
+    deskripsi: "",
+    alamat: "",
+    lat: "",
+    long: "",
+    luas: "",
+    tahun: "",
+  });
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await rthService.create(formData, imageFile);
       navigate("/admin/data-rth");
-    }, 1500);
+    } catch (error) {
+      console.error("Error creating data:", error);
+      alert(
+        "Gagal menyimpan data. Pastikan semua field terisi dan Anda sudah login."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,6 +92,9 @@ const AddDataRTH = () => {
                   </label>
                   <input
                     type="text"
+                    name="nama"
+                    value={formData.nama}
+                    onChange={handleChange}
                     placeholder="Contoh: Taman Kota Pekanbaru"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                     required
@@ -65,7 +104,12 @@ const AddDataRTH = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Kategori <span className="text-red-500">*</span>
                   </label>
-                  <select className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all">
+                  <select
+                    name="kategori"
+                    value={formData.kategori}
+                    onChange={handleChange}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
+                  >
                     <option>Taman Kota</option>
                     <option>Hutan Kota</option>
                     <option>Jalur Hijau</option>
@@ -77,7 +121,12 @@ const AddDataRTH = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Status Operasional
                   </label>
-                  <select className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all">
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
+                  >
                     <option>Aktif</option>
                     <option>Dalam Perbaikan</option>
                     <option>Tutup Sementara</option>
@@ -88,6 +137,9 @@ const AddDataRTH = () => {
                     Deskripsi Singkat
                   </label>
                   <textarea
+                    name="deskripsi"
+                    value={formData.deskripsi}
+                    onChange={handleChange}
                     rows="3"
                     placeholder="Jelaskan fasilitas dan kondisi RTH..."
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
@@ -108,6 +160,9 @@ const AddDataRTH = () => {
                   </label>
                   <input
                     type="text"
+                    name="alamat"
+                    value={formData.alamat}
+                    onChange={handleChange}
                     placeholder="Jl. Jendral Sudirman No..."
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />
@@ -117,7 +172,11 @@ const AddDataRTH = () => {
                     Latitude
                   </label>
                   <input
-                    type="text"
+                    type="number"
+                    step="any"
+                    name="lat"
+                    value={formData.lat}
+                    onChange={handleChange}
                     placeholder="0.507..."
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />
@@ -127,7 +186,11 @@ const AddDataRTH = () => {
                     Longitude
                   </label>
                   <input
-                    type="text"
+                    type="number"
+                    step="any"
+                    name="long"
+                    value={formData.long}
+                    onChange={handleChange}
                     placeholder="101.447..."
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />
@@ -138,7 +201,10 @@ const AddDataRTH = () => {
                   </label>
                   <input
                     type="number"
-                    step="0.1"
+                    step="0.01"
+                    name="luas"
+                    value={formData.luas}
+                    onChange={handleChange}
                     placeholder="0.0"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />
@@ -149,6 +215,9 @@ const AddDataRTH = () => {
                   </label>
                   <input
                     type="number"
+                    name="tahun"
+                    value={formData.tahun}
+                    onChange={handleChange}
                     placeholder="2024"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />
@@ -165,37 +234,55 @@ const AddDataRTH = () => {
                 Foto Lokasi
               </h3>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
+              <label className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
+                <input
+                  type="file"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  className="hidden"
+                />
                 <div className="w-12 h-12 bg-primary-light/20 text-primary-dark rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   <FaCloudUploadAlt className="text-xl" />
                 </div>
                 <p className="text-sm font-medium text-gray-700">
-                  Klik atau drag foto ke sini
+                  Klik untuk upload foto
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
                   Maksimal 5MB (JPG, PNG)
                 </p>
-              </div>
+              </label>
 
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center gap-3 p-2 border border-gray-100 rounded-lg bg-gray-50">
-                  <div className="w-10 h-10 bg-gray-200 rounded-md overflow-hidden">
-                    {/* Preview Placeholder */}
+              {imagePreview && (
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center gap-3 p-2 border border-gray-100 rounded-lg bg-gray-50">
+                    <div className="w-10 h-10 bg-gray-200 rounded-md overflow-hidden">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-xs font-medium text-gray-700 truncate">
+                        {imageFile?.name}
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        {(imageFile?.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setImagePreview(null);
+                      }}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <FaTimes />
+                    </button>
                   </div>
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-xs font-medium text-gray-700 truncate">
-                      taman_kota_depan.jpg
-                    </p>
-                    <p className="text-[10px] text-gray-400">1.2 MB</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="text-gray-400 hover:text-red-500"
-                  >
-                    <FaTimesIcon />
-                  </button>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Action Buttons */}
@@ -204,13 +291,13 @@ const AddDataRTH = () => {
                 type="submit"
                 disabled={loading}
                 className={`
-                            flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-white shadow-lg shadow-primary-dark/20 transition-all
-                            ${
-                              loading
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-primary-dark hover:bg-green-800 hover:shadow-primary-dark/40 active:scale-95"
-                            }
-                        `}
+                                    flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-white shadow-lg shadow-primary-dark/20 transition-all
+                                    ${
+                                      loading
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-primary-dark hover:bg-green-800 hover:shadow-primary-dark/40 active:scale-95"
+                                    }
+                                `}
               >
                 {loading ? (
                   "Menyimpan..."
@@ -234,20 +321,5 @@ const AddDataRTH = () => {
     </div>
   );
 };
-
-// Helper Icon
-const FaTimesIcon = () => (
-  <svg
-    stroke="currentColor"
-    fill="currentColor"
-    strokeWidth="0"
-    viewBox="0 0 512 512"
-    height="1em"
-    width="1em"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"></path>
-  </svg>
-);
 
 export default AddDataRTH;
