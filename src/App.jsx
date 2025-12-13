@@ -12,6 +12,9 @@ const Peta = React.lazy(() => import("./pages/guest/Peta"));
 const TentangKami = React.lazy(() => import("./pages/guest/TentangKami"));
 const Login = React.lazy(() => import("./pages/auth/Login"));
 const Dashboard = React.lazy(() => import("./pages/admin/Dashboard"));
+const DataRTH = React.lazy(() => import("./pages/admin/DataRTH"));
+const AddDataRTH = React.lazy(() => import("./pages/admin/AddDataRTH"));
+const EditDataRTH = React.lazy(() => import("./pages/admin/EditDataRTH"));
 
 function App() {
   return (
@@ -25,13 +28,16 @@ function App() {
             <Route path="/error/:errorCode" element={<ErrorPage />} />
             <Route path="*" element={<ErrorPage />} />
           </Route>
-          
+
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
           </Route>
 
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="data-rth" element={<DataRTH />} />
+            <Route path="data-rth/add" element={<AddDataRTH />} />
+            <Route path="data-rth/edit/:id" element={<EditDataRTH />} />
           </Route>
         </Routes>
       </Suspense>
