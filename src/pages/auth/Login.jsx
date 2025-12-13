@@ -80,33 +80,7 @@ const Login = () => {
             Masuk
           </button>
         </div>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Atau masuk dengan</span>
-          </div>
-        </div>
-
-        <div>
-          <button
-            type="button"
-            className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark transition-colors duration-200"
-          >
-            <FaGoogle className="h-5 w-5 text-red-500" />
-            <span>Google</span>
-          </button>
-        </div>
       </form>
-      
-      <p className="mt-2 text-center text-sm text-gray-600">
-        Belum punya akun?{' '}
-        <Link to="/register" className="font-medium text-primary-dark hover:text-green-800">
-          Daftar sekarang
-        </Link>
-      </p>
     </div>
   );
 };
