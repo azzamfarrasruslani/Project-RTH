@@ -17,9 +17,9 @@ const Sidebar = ({ isOpen, onClose }) => {
   const menuItems = [
     { path: "/admin/dashboard", icon: FaThLarge, label: "Dashboard" },
     { path: "/admin/data-rth", icon: FaMapMarkedAlt, label: "Data RTH" }, // Placeholder route
-    { path: "/admin/laporan", icon: FaClipboardList, label: "Laporan Masuk" }, // Placeholder route
-    { path: "/admin/users", icon: FaUsers, label: "Kelola Pengguna" }, // Placeholder route
-    { path: "/admin/settings", icon: FaCog, label: "Pengaturan" }, // Placeholder route
+    // { path: "/admin/laporan", icon: FaClipboardList, label: "Laporan Masuk" }, // Placeholder route
+    // { path: "/admin/users", icon: FaUsers, label: "Kelola Pengguna" }, // Placeholder route
+    // { path: "/admin/settings", icon: FaCog, label: "Pengaturan" }, // Placeholder route
   ];
 
   const handleLogout = () => {

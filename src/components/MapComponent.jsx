@@ -5,6 +5,7 @@ import {
   Marker,
   Popup,
   LayersControl,
+  GeoJSON,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -30,6 +31,7 @@ const MapComponent = () => {
 
   // Fetch Markers
   const [markers, setMarkers] = React.useState([]);
+  const [geojsons, setGeojsons] = React.useState([]);
 
   React.useEffect(() => {
     const fetchMarkers = async () => {
@@ -44,6 +46,7 @@ const MapComponent = () => {
               kategori: item.kategori,
               luas: item.luas + " Ha",
               posisi: [item.lat || 0, item.long || 0],
+              geojson_url: item.geojson_file, // Store URL
               // Logic warna marker berdasarkan kategori (bisa disesuaikan nanti)
               color:
                 item.kategori === "Hutan Kota"
@@ -52,6 +55,25 @@ const MapComponent = () => {
             }))
             .filter((m) => m.posisi[0] !== 0); // Filter invalid coordinates
           setMarkers(mappedMarkers);
+
+          // Fetch GeoJSON contents concurrently
+          const geojsonPromises = mappedMarkers
+            .filter((m) => m.geojson_url)
+            .map(async (m) => {
+              try {
+                const res = await fetch(m.geojson_url);
+                const json = await res.json();
+                return { id: m.id, data: json, nama: m.nama };
+              } catch (err) {
+                console.error("Failed to load geojson for", m.nama, err);
+                return null;
+              }
+            });
+
+          const loadedGeojsons = (await Promise.all(geojsonPromises)).filter(
+            Boolean
+          );
+          setGeojsons(loadedGeojsons);
         }
       } catch (e) {
         console.error("Error loading markers:", e);
@@ -128,6 +150,13 @@ const MapComponent = () => {
             </div>
           </Popup>
         </Marker>
+      ))}
+
+      {/* Render GeoJSON Layers */}
+      {geojsons.map((g) => (
+        <GeoJSON key={g.id} data={g.data}>
+          <Popup>{g.nama}</Popup>
+        </GeoJSON>
       ))}
     </MapContainer>
   );

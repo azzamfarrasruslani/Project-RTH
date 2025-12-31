@@ -29,6 +29,8 @@ const AddDataRTH = () => {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [geojsonFile, setGeojsonFile] = useState(null);
+  const [geojsonPreview, setGeojsonPreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,11 +45,30 @@ const AddDataRTH = () => {
     }
   };
 
+  const handleGeojsonChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setGeojsonFile(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target.result);
+          setGeojsonPreview(json);
+        } catch (error) {
+          console.error("Invalid GeoJSON", error);
+          alert("File GeoJSON tidak valid");
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await rthService.create(formData, imageFile);
+      await rthService.create({ ...formData, geojsonFile }, imageFile);
       navigate("/admin/data-rth");
     } catch (error) {
       console.error("Error creating data:", error);
@@ -164,6 +185,7 @@ const AddDataRTH = () => {
                   <LocationPicker
                     initialLat={0.507068}
                     initialLong={101.447779}
+                    geojson={geojsonPreview}
                     onConfirm={(lat, lng) => {
                       setFormData((prev) => ({
                         ...prev,
@@ -172,6 +194,46 @@ const AddDataRTH = () => {
                       }));
                     }}
                   />
+                </div>
+
+                {/* GeoJSON Input */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload File GeoJSON (Opsional)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
+                      <span>Pilih File .geojson</span>
+                      <input
+                        type="file"
+                        accept=".geojson,.json"
+                        onChange={handleGeojsonChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {geojsonFile && (
+                      <span className="text-sm text-gray-600">
+                        {geojsonFile.name} (
+                        {(geojsonFile.size / 1024).toFixed(1)} KB)
+                      </span>
+                    )}
+                    {geojsonFile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGeojsonFile(null);
+                          setGeojsonPreview(null);
+                        }}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        <FaTimes /> Hapus
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Format .geojson atau .json untuk menampilkan batas wilayah
+                    RTH di peta.
+                  </p>
                 </div>
               </div>
 

@@ -33,6 +33,9 @@ const EditDataRTH = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
+  const [geojsonFile, setGeojsonFile] = useState(null);
+  const [existingGeojson, setExistingGeojson] = useState(null);
+  const [geojsonPreview, setGeojsonPreview] = useState(null);
 
   // Fetch Data
   useEffect(() => {
@@ -53,6 +56,17 @@ const EditDataRTH = () => {
           });
           if (data.foto_utama) {
             setExistingImage(data.foto_utama);
+          }
+          if (data.geojson_file) {
+            setExistingGeojson(data.geojson_file);
+            // Optimistically try to fetch and parse it for preview if meaningful
+            // For now just storing url
+            fetch(data.geojson_file)
+              .then((res) => res.json())
+              .then((data) => setGeojsonPreview(data))
+              .catch((err) =>
+                console.error("Error loading geojson preview", err)
+              );
           }
         }
       } catch (error) {
@@ -82,11 +96,30 @@ const EditDataRTH = () => {
     }
   };
 
+  const handleGeojsonChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setGeojsonFile(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target.result);
+          setGeojsonPreview(json);
+        } catch (error) {
+          console.error("Invalid GeoJSON", error);
+          alert("File GeoJSON tidak valid");
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await rthService.update(id, formData, imageFile);
+      await rthService.update(id, { ...formData, geojsonFile }, imageFile);
       navigate("/admin/data-rth");
     } catch (error) {
       console.error("Error updating data:", error);
@@ -206,6 +239,7 @@ const EditDataRTH = () => {
                     <LocationPicker
                       initialLat={formData.lat ? formData.lat : 0.507068}
                       initialLong={formData.long ? formData.long : 101.447779}
+                      geojson={geojsonPreview}
                       onConfirm={(lat, lng) => {
                         setFormData((prev) => ({
                           ...prev,
@@ -216,6 +250,56 @@ const EditDataRTH = () => {
                     />
                   </div>
                 )}
+
+                {/* GeoJSON Input */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Perbarui File GeoJSON (Opsional)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
+                      <span>Pilih File .geojson</span>
+                      <input
+                        type="file"
+                        accept=".geojson,.json"
+                        onChange={handleGeojsonChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {geojsonFile && (
+                      <span className="text-sm text-gray-600">
+                        {geojsonFile.name} (
+                        {(geojsonFile.size / 1024).toFixed(1)} KB)
+                      </span>
+                    )}
+                    {geojsonFile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGeojsonFile(null);
+                          // Revert to existing if available, else null
+                          if (existingGeojson) {
+                            fetch(existingGeojson)
+                              .then((res) => res.json())
+                              .then((data) => setGeojsonPreview(data))
+                              .catch(() => setGeojsonPreview(null));
+                          } else {
+                            setGeojsonPreview(null);
+                          }
+                        }}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        <FaTimes /> Batal
+                      </button>
+                    )}
+                  </div>
+                  {existingGeojson && !geojsonFile && (
+                    <p className="text-xs text-green-600 mt-2">
+                      ✓ File GeoJSON sudah tersimpan sebelumnya. Upload baru
+                      untuk mengganti.
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

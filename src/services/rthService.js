@@ -80,9 +80,35 @@ export const rthService = {
       fotoUtamaUrl = await uploadImage(imageFile, fileName);
     }
 
+    let geojsonUrl = null;
+    if (rthData.geojsonFile) {
+      const fileName = `Geo-${Date.now()}-${rthData.geojsonFile.name}`;
+      // Reuse upload logic but skip compression for non-images if needed,
+      // or create specific uploader. For now, simple upload:
+      const { data, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(fileName, rthData.geojsonFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(fileName);
+
+      geojsonUrl = publicUrlData.publicUrl;
+    }
+
+    // Clean data before insert (remove file object)
+    const { geojsonFile, ...cleanData } = rthData;
+
     const { data, error } = await supabase
       .from(TABLE_NAME)
-      .insert([{ ...rthData, foto_utama: fotoUtamaUrl }])
+      .insert([
+        { ...cleanData, foto_utama: fotoUtamaUrl, geojson_file: geojsonUrl },
+      ])
       .select();
 
     if (error) throw error;
@@ -97,6 +123,24 @@ export const rthService = {
       const fileName = `Img-${Date.now()}-${newImageFile.name}`;
       const fotoUtamaUrl = await uploadImage(newImageFile, fileName);
       updates.foto_utama = fotoUtamaUrl;
+    }
+
+    if (updates.geojsonFile) {
+      const fileName = `Geo-${Date.now()}-${updates.geojsonFile.name}`;
+      const { data, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(fileName, updates.geojsonFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error) throw error;
+      const { data: publicUrlData } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(fileName);
+      updates.geojson_file = publicUrlData.publicUrl;
+
+      delete updates.geojsonFile; // Remove file object
     }
 
     const { data, error } = await supabase
