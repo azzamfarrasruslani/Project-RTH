@@ -152,7 +152,11 @@ const EditDataRTH = () => {
       navigate("/admin/data-rth");
     } catch (error) {
       console.error("Error updating data:", error);
-      alert("Gagal memperbarui data. Cek koneksi internet.");
+      alert(
+        `Gagal memperbarui data: ${
+          error.message || "Terjadi kesalahan sistem."
+        }`
+      );
     } finally {
       setLoading(false);
     }

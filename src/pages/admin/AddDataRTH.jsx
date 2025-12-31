@@ -93,7 +93,9 @@ const AddDataRTH = () => {
     } catch (error) {
       console.error("Error creating data:", error);
       alert(
-        "Gagal menyimpan data. Pastikan semua field terisi dan Anda sudah login."
+        `Gagal menyimpan data: ${
+          error.message || "Pastikan semua field terisi."
+        }`
       );
     } finally {
       setLoading(false);
