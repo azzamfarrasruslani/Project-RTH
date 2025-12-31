@@ -33,6 +33,8 @@ const EditDataRTH = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
+  const [galleryFiles, setGalleryFiles] = useState([]);
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
   const [geojsonFile, setGeojsonFile] = useState(null);
   const [existingGeojson, setExistingGeojson] = useState(null);
   const [geojsonPreview, setGeojsonPreview] = useState(null);
@@ -53,6 +55,7 @@ const EditDataRTH = () => {
             long: data.long || "",
             luas: data.luas || "",
             tahun: data.tahun || "",
+            galeri: data.galeri || [], // Ensure array
           });
           if (data.foto_utama) {
             setExistingImage(data.foto_utama);
@@ -115,11 +118,37 @@ const EditDataRTH = () => {
     }
   };
 
+  const handleGalleryChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setGalleryFiles((prev) => [...prev, ...files]);
+      const newPreviews = files.map((file) => URL.createObjectURL(file));
+      setGalleryPreviews((prev) => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeNewGalleryImage = (index) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingGalleryImage = (url) => {
+    setFormData((prev) => ({
+      ...prev,
+      galeri: prev.galeri.filter((item) => item !== url),
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await rthService.update(id, { ...formData, geojsonFile }, imageFile);
+      await rthService.update(
+        id,
+        { ...formData, geojsonFile },
+        imageFile,
+        galleryFiles
+      );
       navigate("/admin/data-rth");
     } catch (error) {
       console.error("Error updating data:", error);
@@ -455,6 +484,91 @@ const EditDataRTH = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Gallery Management Card */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">
+                Galeri Foto Tambahan
+              </h3>
+
+              {/* Existing Gallery */}
+              {formData.galeri && formData.galeri.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Foto Tersimpan ({formData.galeri.length})
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {formData.galeri.map((url, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square rounded-lg overflow-hidden group"
+                      >
+                        <img
+                          src={url}
+                          alt={`Galeri ${idx}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingGalleryImage(url)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Hapus foto ini"
+                        >
+                          <FaTimes size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New Uploads */}
+              <label className="border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group mb-4">
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleGalleryChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <div className="flex items-center gap-2 text-primary-dark mb-1">
+                  <FaCloudUploadAlt />
+                  <span className="text-sm font-medium">Tambah Foto Baru</span>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Klik untuk upload lebih banyak
+                </p>
+              </label>
+
+              {galleryPreviews.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-green-700 mb-2">
+                    Akan Diupload ({galleryPreviews.length})
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {galleryPreviews.map((preview, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square rounded-lg overflow-hidden group border-2 border-green-500"
+                      >
+                        <img
+                          src={preview}
+                          alt="New Galeri"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeNewGalleryImage(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <FaTimes size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}

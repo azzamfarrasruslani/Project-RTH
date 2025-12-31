@@ -29,6 +29,8 @@ const AddDataRTH = () => {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [galleryFiles, setGalleryFiles] = useState([]);
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
   const [geojsonFile, setGeojsonFile] = useState(null);
   const [geojsonPreview, setGeojsonPreview] = useState(null);
 
@@ -43,6 +45,20 @@ const AddDataRTH = () => {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
+  };
+
+  const handleGalleryChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setGalleryFiles((prev) => [...prev, ...files]);
+      const newPreviews = files.map((file) => URL.createObjectURL(file));
+      setGalleryPreviews((prev) => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeGalleryImage = (index) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleGeojsonChange = (e) => {
@@ -68,7 +84,11 @@ const AddDataRTH = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await rthService.create({ ...formData, geojsonFile }, imageFile);
+      await rthService.create(
+        { ...formData, geojsonFile },
+        imageFile,
+        galleryFiles
+      );
       navigate("/admin/data-rth");
     } catch (error) {
       console.error("Error creating data:", error);
@@ -321,7 +341,7 @@ const AddDataRTH = () => {
             {/* Upload Card */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h3 className="text-lg font-bold text-gray-800 mb-4">
-                Foto Lokasi
+                Foto Utama
               </h3>
 
               <label className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
@@ -335,7 +355,7 @@ const AddDataRTH = () => {
                   <FaCloudUploadAlt className="text-xl" />
                 </div>
                 <p className="text-sm font-medium text-gray-700">
-                  Klik untuk upload foto
+                  Klik untuk upload foto utama
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
                   Maksimal 5MB (JPG, PNG)
@@ -371,6 +391,53 @@ const AddDataRTH = () => {
                       <FaTimes />
                     </button>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* Gallery Upload Card */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">
+                Galeri Foto Tambahan
+              </h3>
+              <label className="border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group mb-4">
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleGalleryChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <div className="flex items-center gap-2 text-primary-dark mb-1">
+                  <FaCloudUploadAlt />
+                  <span className="text-sm font-medium">Tambah Foto</span>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Bisa pilih banyak sekaligus
+                </p>
+              </label>
+
+              {galleryPreviews.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {galleryPreviews.map((preview, idx) => (
+                    <div
+                      key={idx}
+                      className="relative aspect-square rounded-lg overflow-hidden group"
+                    >
+                      <img
+                        src={preview}
+                        alt="Galeri"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryImage(idx)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <FaTimes size={10} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

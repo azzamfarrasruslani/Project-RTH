@@ -72,7 +72,7 @@ export const rthService = {
   },
 
   // CREATE
-  create: async (rthData, imageFile) => {
+  create: async (rthData, imageFile, galleryFiles = []) => {
     let fotoUtamaUrl = null;
 
     if (imageFile) {
@@ -101,13 +101,31 @@ export const rthService = {
       geojsonUrl = publicUrlData.publicUrl;
     }
 
+    // Process Gallery Files
+    let galleryUrls = [];
+    if (galleryFiles && galleryFiles.length > 0) {
+      // Upload concurrently
+      const galleryPromises = galleryFiles.map(async (file) => {
+        const fileName = `Gal-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}-${file.name}`;
+        return await uploadImage(file, fileName);
+      });
+      galleryUrls = await Promise.all(galleryPromises);
+    }
+
     // Clean data before insert (remove file object)
     const { geojsonFile, ...cleanData } = rthData;
 
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .insert([
-        { ...cleanData, foto_utama: fotoUtamaUrl, geojson_file: geojsonUrl },
+        {
+          ...cleanData,
+          foto_utama: fotoUtamaUrl,
+          geojson_file: geojsonUrl,
+          galeri: galleryUrls,
+        },
       ])
       .select();
 
@@ -116,7 +134,7 @@ export const rthService = {
   },
 
   // UPDATE
-  update: async (id, rthData, newImageFile) => {
+  update: async (id, rthData, newImageFile, newGalleryFiles = []) => {
     let updates = { ...rthData };
 
     if (newImageFile) {
@@ -141,6 +159,28 @@ export const rthService = {
       updates.geojson_file = publicUrlData.publicUrl;
 
       delete updates.geojsonFile; // Remove file object
+    }
+
+    // Handle Gallery
+    // Current gallery logic:
+    // 1. rthData.galeri (array of existing URLs) comes from UI.
+    // 2. newGalleryFiles (array of new File objects) need to be uploaded.
+    // 3. Merged result = rthData.galeri (filtered) + uploaded new URLs.
+
+    if (newGalleryFiles && newGalleryFiles.length > 0) {
+      const galleryPromises = newGalleryFiles.map(async (file) => {
+        const fileName = `Gal-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}-${file.name}`;
+        return await uploadImage(file, fileName);
+      });
+      const newGalleryUrls = await Promise.all(galleryPromises);
+
+      // Combine existing (if any) with new
+      const existingGallery = Array.isArray(updates.galeri)
+        ? updates.galeri
+        : [];
+      updates.galeri = [...existingGallery, ...newGalleryUrls];
     }
 
     const { data, error } = await supabase
