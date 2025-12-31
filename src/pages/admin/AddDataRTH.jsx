@@ -25,6 +25,7 @@ const AddDataRTH = () => {
     long: "",
     luas: "",
     tahun: "",
+    fasilitas: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -186,6 +187,19 @@ const AddDataRTH = () => {
                     onChange={handleChange}
                     rows="3"
                     placeholder="Jelaskan fasilitas dan kondisi RTH..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
+                  ></textarea>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fasilitas Tersedia
+                  </label>
+                  <textarea
+                    name="fasilitas"
+                    value={formData.fasilitas}
+                    onChange={handleChange}
+                    rows="2"
+                    placeholder="Contoh: Toilet, Musholla, Area Parkir, Jogging Track..."
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   ></textarea>
                 </div>

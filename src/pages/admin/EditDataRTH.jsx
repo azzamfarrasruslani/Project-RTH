@@ -28,6 +28,7 @@ const EditDataRTH = () => {
     long: "",
     luas: "",
     tahun: "",
+    fasilitas: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -50,6 +51,7 @@ const EditDataRTH = () => {
             kategori: data.kategori || "Taman Kota",
             status: data.status || "Aktif",
             deskripsi: data.deskripsi || "",
+            fasilitas: data.fasilitas || "",
             alamat: data.alamat || "",
             lat: data.lat || "",
             long: data.long || "",
@@ -249,6 +251,18 @@ const EditDataRTH = () => {
                     value={formData.deskripsi}
                     onChange={handleChange}
                     rows="3"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
+                  ></textarea>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fasilitas Tersedia
+                  </label>
+                  <textarea
+                    name="fasilitas"
+                    value={formData.fasilitas}
+                    onChange={handleChange}
+                    rows="2"
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   ></textarea>
                 </div>

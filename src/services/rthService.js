@@ -158,8 +158,11 @@ export const rthService = {
         .getPublicUrl(fileName);
       updates.geojson_file = publicUrlData.publicUrl;
 
-      delete updates.geojsonFile; // Remove file object
+      updates.geojson_file = publicUrlData.publicUrl;
     }
+
+    // Remove file object key to avoid "column not found" error
+    delete updates.geojsonFile;
 
     // Handle Gallery
     // Current gallery logic:
