@@ -11,6 +11,7 @@ import {
   FaBuilding,
   FaMountain,
   FaShapes,
+  FaMonument,
 } from "react-icons/fa";
 
 const Peta = () => {
@@ -21,6 +22,7 @@ const Peta = () => {
     jalur: true,
     private: true,
     wisata: true,
+    pemakaman: true,
     lainnya: true,
   });
 
@@ -104,31 +106,91 @@ const Peta = () => {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { id: 'taman', label: 'Taman Kota', icon: FaTree, color: 'bg-green-500', iconColor: 'text-green-600', activeClass: 'border-green-500 bg-green-50 text-green-800' },
-                { id: 'hutan', label: 'Hutan Kota', icon: FaPagelines, color: 'bg-emerald-700', iconColor: 'text-emerald-700', activeClass: 'border-emerald-700 bg-emerald-50 text-emerald-800' },
-                { id: 'jalur', label: 'Jalur Hijau', icon: FaRoad, color: 'bg-lime-500', iconColor: 'text-lime-600', activeClass: 'border-lime-500 bg-lime-50 text-lime-800' },
-                { id: 'private', label: 'RTH Private', icon: FaBuilding, color: 'bg-orange-400', iconColor: 'text-orange-500', activeClass: 'border-orange-500 bg-orange-50 text-orange-800' },
-                { id: 'wisata', label: 'Wisata Alam', icon: FaMountain, color: 'bg-teal-500', iconColor: 'text-teal-600', activeClass: 'border-teal-500 bg-teal-50 text-teal-800' },
-                { id: 'lainnya', label: 'Lainnya', icon: FaShapes, color: 'bg-gray-500', iconColor: 'text-gray-500', activeClass: 'border-gray-500 bg-gray-50 text-gray-800' },
+                {
+                  id: "taman",
+                  label: "Taman Kota",
+                  icon: FaTree,
+                  color: "bg-green-500",
+                  iconColor: "text-green-600",
+                  activeClass: "border-green-500 bg-green-50 text-green-800",
+                },
+                {
+                  id: "hutan",
+                  label: "Hutan Kota",
+                  icon: FaPagelines,
+                  color: "bg-emerald-700",
+                  iconColor: "text-emerald-700",
+                  activeClass:
+                    "border-emerald-700 bg-emerald-50 text-emerald-800",
+                },
+                {
+                  id: "jalur",
+                  label: "Jalur Hijau",
+                  icon: FaRoad,
+                  color: "bg-lime-500",
+                  iconColor: "text-lime-600",
+                  activeClass: "border-lime-500 bg-lime-50 text-lime-800",
+                },
+                {
+                  id: "private",
+                  label: "RTH Private",
+                  icon: FaBuilding,
+                  color: "bg-orange-400",
+                  iconColor: "text-orange-500",
+                  activeClass: "border-orange-500 bg-orange-50 text-orange-800",
+                },
+                {
+                  id: "wisata",
+                  label: "Wisata Alam",
+                  icon: FaMountain,
+                  color: "bg-teal-500",
+                  iconColor: "text-teal-600",
+                  activeClass: "border-teal-500 bg-teal-50 text-teal-800",
+                },
+                {
+                  id: "pemakaman",
+                  label: "Pemakaman",
+                  icon: FaMonument,
+                  color: "bg-indigo-500",
+                  iconColor: "text-indigo-600",
+                  activeClass: "border-indigo-500 bg-indigo-50 text-indigo-800",
+                },
+                {
+                  id: "lainnya",
+                  label: "Lainnya",
+                  icon: FaShapes,
+                  color: "bg-gray-500",
+                  iconColor: "text-gray-500",
+                  activeClass: "border-gray-500 bg-gray-50 text-gray-800",
+                },
               ].map((cat) => (
                 <button
                   key={cat.id}
-                  onClick={() => setFilters(prev => ({ ...prev, [cat.id]: !prev[cat.id] }))}
+                  onClick={() =>
+                    setFilters((prev) => ({ ...prev, [cat.id]: !prev[cat.id] }))
+                  }
                   className={`
                     relative p-3 rounded-xl border text-left flex flex-col gap-3 transition-all duration-200 group
-                    ${filters[cat.id] 
-                      ? `${cat.activeClass} shadow-sm ring-1 ring-inset ring-black/5` 
-                      : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50 hover:border-gray-200'
+                    ${
+                      filters[cat.id]
+                        ? `${cat.activeClass} shadow-sm ring-1 ring-inset ring-black/5`
+                        : "border-gray-100 bg-white text-gray-400 hover:bg-gray-50 hover:border-gray-200"
                     }
                   `}
                 >
                   <div className="flex items-center justify-between w-full">
-                     <cat.icon className={`text-xl transition-colors ${filters[cat.id] ? cat.iconColor : 'text-gray-300'}`} />
-                     <span 
-                      className={`w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-300 ${filters[cat.id] ? "scale-100" : "scale-75 opacity-50"} ${cat.color}`} 
+                    <cat.icon
+                      className={`text-xl transition-colors ${
+                        filters[cat.id] ? cat.iconColor : "text-gray-300"
+                      }`}
+                    />
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-300 ${
+                        filters[cat.id] ? "scale-100" : "scale-75 opacity-50"
+                      } ${cat.color}`}
                     />
                   </div>
-                  
+
                   <span className="text-xs font-bold font-outfit truncate w-full block">
                     {cat.label}
                   </span>

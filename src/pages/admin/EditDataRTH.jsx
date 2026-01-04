@@ -45,6 +45,7 @@ const EditDataRTH = () => {
     "Jalur Hijau",
     "RTH Private",
     "Taman Wisata Alam",
+    "Pemakaman",
     "Lapangan",
     "Lainnya",
   ]);
@@ -60,6 +61,7 @@ const EditDataRTH = () => {
           "Jalur Hijau",
           "RTH Private",
           "Taman Wisata Alam",
+          "Pemakaman",
           "Lapangan",
         ];
 

@@ -17,6 +17,7 @@ import {
   FaBuilding,
   FaMountain,
   FaShapes,
+  FaMonument,
 } from "react-icons/fa";
 // Fix for default marker icon
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -71,6 +72,8 @@ const MapComponent = ({
                 color = "text-orange-800 bg-orange-100";
               else if (item.kategori === "Taman Wisata Alam")
                 color = "text-teal-800 bg-teal-100";
+              else if (item.kategori === "Pemakaman")
+                color = "text-indigo-800 bg-indigo-100";
 
               return {
                 id: item.id,
@@ -134,6 +137,8 @@ const MapComponent = ({
       matchesCategory = true;
     else if (filters.wisata && item.kategori === "Taman Wisata Alam")
       matchesCategory = true;
+    else if (filters.pemakaman && item.kategori === "Pemakaman")
+      matchesCategory = true;
     else if (
       filters.lainnya &&
       ![
@@ -142,6 +147,7 @@ const MapComponent = ({
         "Jalur Hijau",
         "RTH Private",
         "Taman Wisata Alam",
+        "Pemakaman",
       ].includes(item.kategori)
     )
       matchesCategory = true;
@@ -162,6 +168,8 @@ const MapComponent = ({
         return "#fb923c"; // orange-400
       case "Taman Wisata Alam":
         return "#14b8a6"; // teal-500
+      case "Pemakaman":
+        return "#6366f1"; // indigo-500
       default:
         return "#6b7280"; // gray-500 (Lainnya)
     }
@@ -179,6 +187,8 @@ const MapComponent = ({
         return <FaBuilding />;
       case "Taman Wisata Alam":
         return <FaMountain />;
+      case "Pemakaman":
+        return <FaMonument />;
       default:
         return <FaShapes />;
     }
@@ -275,30 +285,32 @@ const MapComponent = ({
       ))}
 
       {/* Render GeoJSON Layers */}
-      {geojsons.map((g) => (
-        <GeoJSON
-          key={g.id}
-          data={g.data} // Leaflet automatically handles Polygon/MultiPolygon
-          style={() => ({
-            color: getGeoJsonColor(g.kategori),
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.4,
-            fillColor: getGeoJsonColor(g.kategori),
-          })}
-          onEachFeature={(feature, layer) => {
-            layer.on({
-              mouseover: (e) => {
-                e.target.setStyle({ fillOpacity: 0.8, weight: 3 });
-              },
-              mouseout: (e) => {
-                e.target.setStyle({ fillOpacity: 0.4, weight: 2 });
-              },
-            });
-            layer.bindPopup(g.nama);
-          }}
-        ></GeoJSON>
-      ))}
+      {geojsons
+        .filter((g) => filteredMarkers.some((m) => m.id === g.id))
+        .map((g) => (
+          <GeoJSON
+            key={g.id}
+            data={g.data} // Leaflet automatically handles Polygon/MultiPolygon
+            style={() => ({
+              color: getGeoJsonColor(g.kategori),
+              weight: 2,
+              opacity: 1,
+              fillOpacity: 0.4,
+              fillColor: getGeoJsonColor(g.kategori),
+            })}
+            onEachFeature={(feature, layer) => {
+              layer.on({
+                mouseover: (e) => {
+                  e.target.setStyle({ fillOpacity: 0.8, weight: 3 });
+                },
+                mouseout: (e) => {
+                  e.target.setStyle({ fillOpacity: 0.4, weight: 2 });
+                },
+              });
+              layer.bindPopup(g.nama);
+            }}
+          ></GeoJSON>
+        ))}
     </MapContainer>
   );
 };

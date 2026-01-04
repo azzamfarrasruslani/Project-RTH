@@ -34,6 +34,7 @@ const AddDataRTH = () => {
     "Jalur Hijau",
     "RTH Private",
     "Taman Wisata Alam",
+    "Pemakaman",
     "Lapangan",
     "Lainnya",
   ]);
@@ -50,6 +51,7 @@ const AddDataRTH = () => {
           "Jalur Hijau",
           "RTH Private",
           "Taman Wisata Alam",
+          "Pemakaman",
           "Lapangan",
         ];
 
