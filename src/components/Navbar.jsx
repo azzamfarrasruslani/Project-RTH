@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaTree } from "react-icons/fa";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,11 +15,12 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-               {/* Placeholder for Logo Icon if needed, using text for now */}
-               <div className="w-8 h-8 bg-primary-dark rounded-tr-xl rounded-bl-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">E</span>
-               </div>
-               <span className="text-2xl font-bold text-primary-dark font-outfit">EcoRiau</span>
+              <div className="w-8 h-8 bg-primary-dark rounded-tr-xl rounded-bl-xl flex items-center justify-center">
+                <FaTree className="text-white text-lg" />
+              </div>
+              <span className="text-2xl font-bold text-primary-dark font-outfit">
+                EcoRiau
+              </span>
             </Link>
           </div>
           <div className="hidden md:block">
@@ -59,7 +60,11 @@ const Navbar = () => {
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
-              {isOpen ? <FaTimes className="block h-6 w-6" /> : <FaBars className="block h-6 w-6" />}
+              {isOpen ? (
+                <FaTimes className="block h-6 w-6" />
+              ) : (
+                <FaBars className="block h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -67,7 +72,10 @@ const Navbar = () => {
 
       {/* Mobile menu, show/hide based on menu state. */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100" id="mobile-menu">
+        <div
+          className="md:hidden bg-white border-t border-gray-100"
+          id="mobile-menu"
+        >
           <div className="px-4 pt-2 pb-4 space-y-1">
             <Link
               to="/"
@@ -90,7 +98,7 @@ const Navbar = () => {
             >
               Peta
             </Link>
-             <Link
+            <Link
               to="/login"
               className="text-teks hover:text-primary-dark block px-3 py-2 rounded-md text-base font-medium"
               onClick={toggleMenu}

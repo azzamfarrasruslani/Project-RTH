@@ -27,7 +27,6 @@ const EditDataRTH = () => {
     lat: "",
     long: "",
     luas: "",
-    tahun: "",
     fasilitas: "",
   });
 
@@ -94,7 +93,6 @@ const EditDataRTH = () => {
             lat: data.lat || "",
             long: data.long || "",
             luas: data.luas || "",
-            tahun: data.tahun || "",
             galeri: data.galeri || [], // Ensure array
           });
 
@@ -194,7 +192,6 @@ const EditDataRTH = () => {
     if (dataToSubmit.lat === "") dataToSubmit.lat = null;
     if (dataToSubmit.long === "") dataToSubmit.long = null;
     if (dataToSubmit.luas === "") dataToSubmit.luas = null;
-    if (dataToSubmit.tahun === "") dataToSubmit.tahun = null;
 
     if (dataToSubmit.kategori === "Lainnya") {
       dataToSubmit.kategori = customKategori;
@@ -473,18 +470,6 @@ const EditDataRTH = () => {
                     step="0.01"
                     name="luas"
                     value={formData.luas}
-                    onChange={handleChange}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tahun Peresmian
-                  </label>
-                  <input
-                    type="number"
-                    name="tahun"
-                    value={formData.tahun}
                     onChange={handleChange}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   />

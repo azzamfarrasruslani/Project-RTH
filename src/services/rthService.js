@@ -214,4 +214,26 @@ export const rthService = {
     const categories = [...new Set(data.map((item) => item.kategori))];
     return categories.filter((c) => c); // Remove null/undefined
   },
+
+  // REVIEWS
+  getReviewsByRthId: async (rthId) => {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("rth_id", rthId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  addReview: async (reviewData) => {
+    const { data, error } = await supabase
+      .from("reviews")
+      .insert([reviewData])
+      .select();
+
+    if (error) throw error;
+    return data;
+  },
 };
