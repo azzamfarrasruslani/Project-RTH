@@ -203,4 +203,15 @@ export const rthService = {
     if (error) throw error;
     return true;
   },
+
+  // GET UNIQUE CATEGORIES
+  getUniqueCategories: async () => {
+    const { data, error } = await supabase.from(TABLE_NAME).select("kategori");
+
+    if (error) throw error;
+
+    // Extract unique values
+    const categories = [...new Set(data.map((item) => item.kategori))];
+    return categories.filter((c) => c); // Remove null/undefined
+  },
 };

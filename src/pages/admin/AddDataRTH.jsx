@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaArrowLeft,
@@ -29,6 +29,47 @@ const AddDataRTH = () => {
   });
 
   const [customKategori, setCustomKategori] = useState("");
+  const [categories, setCategories] = useState([
+    "Taman Kota",
+    "Hutan Kota",
+    "Jalur Hijau",
+    "RTH Private",
+    "Taman Wisata Alam",
+    "Lapangan",
+    "Lainnya",
+  ]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const existingCategories = await rthService.getUniqueCategories();
+
+        // Default standard categories
+        const defaults = [
+          "Taman Kota",
+          "Hutan Kota",
+          "Jalur Hijau",
+          "RTH Private",
+          "Taman Wisata Alam",
+          "Lapangan",
+        ];
+
+        // Merge defaults with existing from DB (remove duplicates)
+        const merged = Array.from(
+          new Set([...defaults, ...existingCategories])
+        );
+
+        // Ensure "Lainnya" is always at the end
+        const finalCategories = merged.filter((c) => c !== "Lainnya");
+        finalCategories.push("Lainnya");
+
+        setCategories(finalCategories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -166,17 +207,31 @@ const AddDataRTH = () => {
                   <select
                     name="kategori"
                     value={formData.kategori}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleChange(e);
+                      if (val !== "Lainnya") {
+                        setCustomKategori("");
+                      }
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   >
-                    <option>Taman Kota</option>
-                    <option>Hutan Kota</option>
-                    <option>Jalur Hijau</option>
-                    <option>Pemakaman</option>
-                    <option>RTH Private</option>
-                    <option>Taman Wisata Alam</option>
-                    <option>Lainnya</option>
+                    {categories.map((cat, idx) => (
+                      <option key={idx} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
                   </select>
+                  {formData.kategori === "Lainnya" && (
+                    <input
+                      type="text"
+                      value={customKategori}
+                      onChange={(e) => setCustomKategori(e.target.value)}
+                      placeholder="Masukkan Kategori Lainnya"
+                      className="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all animate-fadeIn"
+                      required
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

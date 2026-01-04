@@ -40,6 +40,43 @@ const EditDataRTH = () => {
   const [existingGeojson, setExistingGeojson] = useState(null);
   const [geojsonPreview, setGeojsonPreview] = useState(null);
   const [customKategori, setCustomKategori] = useState("");
+  const [categories, setCategories] = useState([
+    "Taman Kota",
+    "Hutan Kota",
+    "Jalur Hijau",
+    "RTH Private",
+    "Taman Wisata Alam",
+    "Lapangan",
+    "Lainnya",
+  ]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const existingCategories = await rthService.getUniqueCategories();
+
+        const defaults = [
+          "Taman Kota",
+          "Hutan Kota",
+          "Jalur Hijau",
+          "RTH Private",
+          "Taman Wisata Alam",
+          "Lapangan",
+        ];
+
+        const merged = Array.from(
+          new Set([...defaults, ...existingCategories])
+        );
+        const finalCategories = merged.filter((c) => c !== "Lainnya");
+        finalCategories.push("Lainnya");
+
+        setCategories(finalCategories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Fetch Data
   useEffect(() => {
@@ -62,19 +99,9 @@ const EditDataRTH = () => {
           });
 
           // Check if category is standard
-          const standardCategories = [
-            "Taman Kota",
-            "Hutan Kota",
-            "Jalur Hijau",
-            "Pemakaman",
-            "RTH Private",
-            "Taman Wisata Alam",
-          ];
-
-          if (!standardCategories.includes(data.kategori)) {
-            setFormData((prev) => ({ ...prev, kategori: "Lainnya" }));
-            setCustomKategori(data.kategori);
-          }
+          // Simplified: We now support dynamic categories.
+          // If the category exists in our dynamic list, it will be selected automatically.
+          // We only default to 'Lainnya' if specifically needed, but generally we treat db value as truth.
 
           if (data.foto_utama) {
             setExistingImage(data.foto_utama);
@@ -253,13 +280,11 @@ const EditDataRTH = () => {
                     }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   >
-                    <option>Taman Kota</option>
-                    <option>Hutan Kota</option>
-                    <option>Jalur Hijau</option>
-                    <option>Pemakaman</option>
-                    <option>RTH Private</option>
-                    <option>Taman Wisata Alam</option>
-                    <option>Lainnya</option>
+                    {categories.map((cat, idx) => (
+                      <option key={idx} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
                   </select>
                   {formData.kategori === "Lainnya" && (
                     <input
