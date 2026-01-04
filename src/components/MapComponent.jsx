@@ -1,4 +1,5 @@
 import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   MapContainer,
   TileLayer,
@@ -9,7 +10,14 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-
+import {
+  FaTree,
+  FaPagelines,
+  FaRoad,
+  FaBuilding,
+  FaMountain,
+  FaShapes,
+} from "react-icons/fa";
 // Fix for default marker icon
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -159,6 +167,48 @@ const MapComponent = ({
     }
   };
 
+  const getCategoryIcon = (kategori) => {
+    switch (kategori) {
+      case "Taman Kota":
+        return <FaTree />;
+      case "Hutan Kota":
+        return <FaPagelines />;
+      case "Jalur Hijau":
+        return <FaRoad />;
+      case "RTH Private":
+        return <FaBuilding />;
+      case "Taman Wisata Alam":
+        return <FaMountain />;
+      default:
+        return <FaShapes />;
+    }
+  };
+
+  const createCustomIcon = (color, iconNode) => {
+    const iconHtml = renderToStaticMarkup(iconNode);
+    return L.divIcon({
+      className: "custom-marker-icon",
+      html: `<div style="
+        background-color: ${color};
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+      ">
+        ${iconHtml}
+      </div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14],
+    });
+  };
+
   return (
     <MapContainer
       center={position}
@@ -168,6 +218,13 @@ const MapComponent = ({
     >
       <LayersControl position="topright">
         {/* Basemap Options */}
+        <LayersControl.BaseLayer checked name="Esri World Imagery (Satelit)">
+          <TileLayer
+            attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        </LayersControl.BaseLayer>
+
         <LayersControl.BaseLayer name="CartoDB Voyager (Modern)">
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -181,20 +238,18 @@ const MapComponent = ({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
         </LayersControl.BaseLayer>
-
-        <LayersControl.BaseLayer checked name="Esri World Imagery (Satelit)">
-          <TileLayer
-            attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          />
-        </LayersControl.BaseLayer>
       </LayersControl>
 
       {/* RTH Markers */}
-
-      {/* Render Markers from Array */}
       {filteredMarkers.map((item) => (
-        <Marker key={item.id} position={item.posisi}>
+        <Marker
+          key={item.id}
+          position={item.posisi}
+          icon={createCustomIcon(
+            getGeoJsonColor(item.kategori),
+            getCategoryIcon(item.kategori)
+          )}
+        >
           <Popup className="font-outfit">
             <div className="min-w-[160px]">
               <h3 className="font-bold text-primary-dark mb-1 text-sm">
@@ -223,16 +278,26 @@ const MapComponent = ({
       {geojsons.map((g) => (
         <GeoJSON
           key={g.id}
-          data={g.data}
+          data={g.data} // Leaflet automatically handles Polygon/MultiPolygon
           style={() => ({
             color: getGeoJsonColor(g.kategori),
             weight: 2,
             opacity: 1,
-            fillOpacity: 0.5,
+            fillOpacity: 0.4,
+            fillColor: getGeoJsonColor(g.kategori),
           })}
-        >
-          <Popup>{g.nama}</Popup>
-        </GeoJSON>
+          onEachFeature={(feature, layer) => {
+            layer.on({
+              mouseover: (e) => {
+                e.target.setStyle({ fillOpacity: 0.8, weight: 3 });
+              },
+              mouseout: (e) => {
+                e.target.setStyle({ fillOpacity: 0.4, weight: 2 });
+              },
+            });
+            layer.bindPopup(g.nama);
+          }}
+        ></GeoJSON>
       ))}
     </MapContainer>
   );

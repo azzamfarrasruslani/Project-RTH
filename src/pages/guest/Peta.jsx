@@ -6,6 +6,11 @@ import {
   FaLayerGroup,
   FaInfoCircle,
   FaTimes,
+  FaPagelines,
+  FaRoad,
+  FaBuilding,
+  FaMountain,
+  FaShapes,
 } from "react-icons/fa";
 
 const Peta = () => {
@@ -52,16 +57,16 @@ const Peta = () => {
           lg:translate-x-0 lg:top-4 lg:left-4 lg:h-[calc(100%-32px)] lg:w-80
         `}
       >
-        <div className="p-6 pb-2 flex-shrink-0 flex justify-between items-start">
+        {/* Header Section */}
+        <div className="px-6 py-6 pb-4 flex-shrink-0 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-primary-dark font-outfit mb-2">
+            <h1 className="text-2xl font-bold text-primary-dark font-outfit mb-1">
               Peta Sebaran
             </h1>
-            <p className="text-sm text-teks-samping">
-              Filter dan jelajahi lokasi RTH.
+            <p className="text-sm text-gray-500 leading-relaxed font-outfit">
+              Eksplorasi Ruang Terbuka Hijau
             </p>
           </div>
-          {/* Close Button Mobile */}
           <button
             onClick={() => setIsSidebarOpen(false)}
             className="lg:hidden p-2 -mr-2 text-gray-400 hover:text-primary-dark transition-colors"
@@ -70,141 +75,82 @@ const Peta = () => {
           </button>
         </div>
 
-        <div className="px-6 py-2">
-          <input
-            type="text"
-            placeholder="Cari lokasi..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all text-sm"
-          />
-        </div>
+        {/* Search & Filter Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-2 pb-6 custom-scrollbar space-y-6">
+          {/* Search Input */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaTree className="text-gray-400 group-focus-within:text-primary-dark transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder="Cari lokasi RTH..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-dark/20 focus:border-primary-dark outline-none transition-all text-sm font-medium font-outfit shadow-sm"
+            />
+          </div>
 
-        <div className="flex-1 overflow-y-auto p-6 pt-2 custom-scrollbar space-y-6">
-          {/* Filter Section */}
+          {/* Filter Grid */}
           <div>
-            <h3 className="flex items-center gap-2 font-semibold text-primary-dark mb-4 sticky top-0 bg-white py-2 z-10">
-              <FaFilter className="text-accent" /> Filter Kategori
-            </h3>
-            <div className="space-y-3 pl-1">
-              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <input
-                  type="checkbox"
-                  name="taman"
-                  checked={filters.taman}
-                  onChange={handleFilterChange}
-                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
-                />
-                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
-                  Taman Kota
-                </span>
-              </label>
-              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <input
-                  type="checkbox"
-                  name="hutan"
-                  checked={filters.hutan}
-                  onChange={handleFilterChange}
-                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
-                />
-                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
-                  Hutan Kota
-                </span>
-              </label>
-              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <input
-                  type="checkbox"
-                  name="jalur"
-                  checked={filters.jalur}
-                  onChange={handleFilterChange}
-                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
-                />
-                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
-                  Jalur Hijau
-                </span>
-              </label>
-              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <input
-                  type="checkbox"
-                  name="private"
-                  checked={filters.private}
-                  onChange={handleFilterChange}
-                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
-                />
-                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
-                  RTH Private
-                </span>
-              </label>
-              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <input
-                  type="checkbox"
-                  name="wisata"
-                  checked={filters.wisata}
-                  onChange={handleFilterChange}
-                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
-                />
-                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
-                  Taman Wisata Alam
-                </span>
-              </label>
-              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <input
-                  type="checkbox"
-                  name="lainnya"
-                  checked={filters.lainnya}
-                  onChange={handleFilterChange}
-                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
-                />
-                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
-                  Lainnya
-                </span>
-              </label>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-800 font-outfit text-sm">
+                Kategori & Layer
+              </h3>
+              <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold bg-gray-100 px-2 py-0.5 rounded-full">
+                Filter
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { id: 'taman', label: 'Taman Kota', icon: FaTree, color: 'bg-green-500', iconColor: 'text-green-600', activeClass: 'border-green-500 bg-green-50 text-green-800' },
+                { id: 'hutan', label: 'Hutan Kota', icon: FaPagelines, color: 'bg-emerald-700', iconColor: 'text-emerald-700', activeClass: 'border-emerald-700 bg-emerald-50 text-emerald-800' },
+                { id: 'jalur', label: 'Jalur Hijau', icon: FaRoad, color: 'bg-lime-500', iconColor: 'text-lime-600', activeClass: 'border-lime-500 bg-lime-50 text-lime-800' },
+                { id: 'private', label: 'RTH Private', icon: FaBuilding, color: 'bg-orange-400', iconColor: 'text-orange-500', activeClass: 'border-orange-500 bg-orange-50 text-orange-800' },
+                { id: 'wisata', label: 'Wisata Alam', icon: FaMountain, color: 'bg-teal-500', iconColor: 'text-teal-600', activeClass: 'border-teal-500 bg-teal-50 text-teal-800' },
+                { id: 'lainnya', label: 'Lainnya', icon: FaShapes, color: 'bg-gray-500', iconColor: 'text-gray-500', activeClass: 'border-gray-500 bg-gray-50 text-gray-800' },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setFilters(prev => ({ ...prev, [cat.id]: !prev[cat.id] }))}
+                  className={`
+                    relative p-3 rounded-xl border text-left flex flex-col gap-3 transition-all duration-200 group
+                    ${filters[cat.id] 
+                      ? `${cat.activeClass} shadow-sm ring-1 ring-inset ring-black/5` 
+                      : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50 hover:border-gray-200'
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between w-full">
+                     <cat.icon className={`text-xl transition-colors ${filters[cat.id] ? cat.iconColor : 'text-gray-300'}`} />
+                     <span 
+                      className={`w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-300 ${filters[cat.id] ? "scale-100" : "scale-75 opacity-50"} ${cat.color}`} 
+                    />
+                  </div>
+                  
+                  <span className="text-xs font-bold font-outfit truncate w-full block">
+                    {cat.label}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Legend Section */}
-          <div className="border-t border-gray-100 pt-6">
-            <h3 className="flex items-center gap-2 font-semibold text-primary-dark mb-4">
-              <FaLayerGroup className="text-accent" /> Legenda
-            </h3>
-            <div className="space-y-3 text-sm pl-1">
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
-                <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm ring-2 ring-green-100"></div>
-                <span className="text-teks font-medium">
-                  Taman Kota (Aktif)
-                </span>
+          {/* Info Card */}
+          <div className="bg-blue-50/80 p-4 rounded-xl border border-blue-100/50 backdrop-blur-sm">
+            <div className="flex gap-3">
+              <FaInfoCircle className="text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-blue-800 font-outfit">
+                  Informasi Peta
+                </p>
+                <p className="text-[11px] text-blue-600/80 leading-relaxed font-outfit">
+                  Warna pada tombol filter sesuai dengan warna area/marker di
+                  peta. Klik tombol untuk menyembunyikan atau menampilkan
+                  kategori.
+                </p>
               </div>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
-                <div className="w-3 h-3 rounded-full bg-emerald-700 shadow-sm ring-2 ring-emerald-100"></div>
-                <span className="text-teks font-medium">Hutan Kota</span>
-              </div>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
-                <div className="w-3 h-3 rounded-full bg-lime-400 shadow-sm ring-2 ring-lime-100"></div>
-                <span className="text-teks font-medium">Jalur Hijau</span>
-              </div>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
-                <div className="w-3 h-3 rounded-full bg-orange-400 shadow-sm ring-2 ring-orange-100"></div>
-                <span className="text-teks font-medium">RTH Private</span>
-              </div>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
-                <div className="w-3 h-3 rounded-full bg-teal-500 shadow-sm ring-2 ring-teal-100"></div>
-                <span className="text-teks font-medium">Taman Wisata</span>
-              </div>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
-                <div className="w-3 h-3 rounded-full bg-gray-500 shadow-sm ring-2 ring-gray-100"></div>
-                <span className="text-teks font-medium">Lainnya</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Info Box */}
-          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mt-6">
-            <div className="flex gap-3 items-start">
-              <FaInfoCircle className="text-primary-dark mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-primary-dark leading-relaxed">
-                Data diperbarui terakhir pada <strong>Desember 2025</strong>.
-                Klik marker pada peta untuk melihat detail lokasi.
-              </p>
             </div>
           </div>
         </div>
