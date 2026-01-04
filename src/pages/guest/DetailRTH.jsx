@@ -38,6 +38,8 @@ const DetailRTH = () => {
     loadData();
   }, [id]);
 
+  const [selectedImage, setSelectedImage] = React.useState(null);
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -126,13 +128,15 @@ const DetailRTH = () => {
               {data.galeri.map((img, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl overflow-hidden shadow-sm h-48 group cursor-pointer"
+                  onClick={() => setSelectedImage(img)}
+                  className="rounded-xl overflow-hidden shadow-sm h-48 group cursor-pointer relative"
                 >
                   <img
                     src={img}
                     alt={`Gallery ${idx}`}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 </div>
               ))}
             </div>
@@ -171,6 +175,27 @@ const DetailRTH = () => {
           </div>
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-6 right-6 text-white/70 hover:text-white text-4xl transition-colors z-50"
+          >
+            &times;
+          </button>
+          <img
+            src={selectedImage}
+            alt="Full Preview"
+            className="max-w-full max-h-[90vh] rounded-lg shadow-2xl object-contain animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };

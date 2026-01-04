@@ -162,6 +162,13 @@ const EditDataRTH = () => {
     e.preventDefault();
     setLoading(true);
     const dataToSubmit = { ...formData };
+
+    // Sanitize numeric fields
+    if (dataToSubmit.lat === "") dataToSubmit.lat = null;
+    if (dataToSubmit.long === "") dataToSubmit.long = null;
+    if (dataToSubmit.luas === "") dataToSubmit.luas = null;
+    if (dataToSubmit.tahun === "") dataToSubmit.tahun = null;
+
     if (dataToSubmit.kategori === "Lainnya") {
       dataToSubmit.kategori = customKategori;
     }
