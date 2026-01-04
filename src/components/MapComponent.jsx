@@ -25,7 +25,17 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const MapComponent = () => {
+const MapComponent = ({
+  filters = {
+    taman: true,
+    hutan: true,
+    jalur: true,
+    private: true,
+    wisata: true,
+    lainnya: true,
+  },
+  searchTerm = "",
+}) => {
   // Coordinates for Pekanbaru
   const position = [0.507068, 101.447779]; // Pekanbaru Coordinate
 
@@ -40,19 +50,30 @@ const MapComponent = () => {
         const data = await rthService.getAll();
         if (data) {
           const mappedMarkers = data
-            .map((item) => ({
-              id: item.id,
-              nama: item.nama,
-              kategori: item.kategori,
-              luas: item.luas + " Ha",
-              posisi: [item.lat || 0, item.long || 0],
-              geojson_url: item.geojson_file, // Store URL
-              // Logic warna marker berdasarkan kategori (bisa disesuaikan nanti)
-              color:
-                item.kategori === "Hutan Kota"
-                  ? "text-emerald-800 bg-emerald-100"
-                  : "text-green-800 bg-green-100",
-            }))
+            .map((item) => {
+              // Determine color based on category
+              let color = "text-gray-800 bg-gray-100"; // Default/Lainnya
+              if (item.kategori === "Taman Kota")
+                color = "text-green-800 bg-green-100";
+              else if (item.kategori === "Hutan Kota")
+                color = "text-emerald-800 bg-emerald-100";
+              else if (item.kategori === "Jalur Hijau")
+                color = "text-lime-800 bg-lime-100";
+              else if (item.kategori === "RTH Private")
+                color = "text-orange-800 bg-orange-100";
+              else if (item.kategori === "Taman Wisata Alam")
+                color = "text-teal-800 bg-teal-100";
+
+              return {
+                id: item.id,
+                nama: item.nama,
+                kategori: item.kategori,
+                luas: item.luas + " Ha",
+                posisi: [item.lat || 0, item.long || 0],
+                geojson_url: item.geojson_file, // Store URL
+                color: color,
+              };
+            })
             .filter((m) => m.posisi[0] !== 0); // Filter invalid coordinates
           setMarkers(mappedMarkers);
 
@@ -63,7 +84,12 @@ const MapComponent = () => {
               try {
                 const res = await fetch(m.geojson_url);
                 const json = await res.json();
-                return { id: m.id, data: json, nama: m.nama };
+                return {
+                  id: m.id,
+                  data: json,
+                  nama: m.nama,
+                  kategori: m.kategori,
+                };
               } catch (err) {
                 console.error("Failed to load geojson for", m.nama, err);
                 return null;
@@ -82,6 +108,57 @@ const MapComponent = () => {
     fetchMarkers();
   }, []);
 
+  // Filter Logic
+  const filteredMarkers = markers.filter((item) => {
+    // 1. Search Filter
+    const matchesSearch = item.nama
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    // 2. Category Filter
+    let matchesCategory = false;
+    if (filters.taman && item.kategori === "Taman Kota") matchesCategory = true;
+    else if (filters.hutan && item.kategori === "Hutan Kota")
+      matchesCategory = true;
+    else if (filters.jalur && item.kategori === "Jalur Hijau")
+      matchesCategory = true;
+    else if (filters.private && item.kategori === "RTH Private")
+      matchesCategory = true;
+    else if (filters.wisata && item.kategori === "Taman Wisata Alam")
+      matchesCategory = true;
+    else if (
+      filters.lainnya &&
+      ![
+        "Taman Kota",
+        "Hutan Kota",
+        "Jalur Hijau",
+        "RTH Private",
+        "Taman Wisata Alam",
+      ].includes(item.kategori)
+    )
+      matchesCategory = true;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  // Helper to get GeoJSON Color based on category
+  const getGeoJsonColor = (kategori) => {
+    switch (kategori) {
+      case "Taman Kota":
+        return "#22c55e"; // green-500
+      case "Hutan Kota":
+        return "#047857"; // emerald-700
+      case "Jalur Hijau":
+        return "#a3e635"; // lime-400
+      case "RTH Private":
+        return "#fb923c"; // orange-400
+      case "Taman Wisata Alam":
+        return "#14b8a6"; // teal-500
+      default:
+        return "#6b7280"; // gray-500 (Lainnya)
+    }
+  };
+
   return (
     <MapContainer
       center={position}
@@ -91,7 +168,7 @@ const MapComponent = () => {
     >
       <LayersControl position="topright">
         {/* Basemap Options */}
-        <LayersControl.BaseLayer checked name="CartoDB Voyager (Modern)">
+        <LayersControl.BaseLayer name="CartoDB Voyager (Modern)">
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -105,7 +182,7 @@ const MapComponent = () => {
           />
         </LayersControl.BaseLayer>
 
-        <LayersControl.BaseLayer name="Esri World Imagery (Satelit)">
+        <LayersControl.BaseLayer checked name="Esri World Imagery (Satelit)">
           <TileLayer
             attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -114,19 +191,9 @@ const MapComponent = () => {
       </LayersControl>
 
       {/* RTH Markers */}
-      <Marker position={position}>
-        <Popup className="font-outfit">
-          <div className="text-center">
-            <h3 className="font-bold text-primary-dark">
-              Pusat Kota Pekanbaru
-            </h3>
-            <p className="text-xs text-gray-600">Titik Referensi</p>
-          </div>
-        </Popup>
-      </Marker>
 
       {/* Render Markers from Array */}
-      {markers.map((item) => (
+      {filteredMarkers.map((item) => (
         <Marker key={item.id} position={item.posisi}>
           <Popup className="font-outfit">
             <div className="min-w-[160px]">
@@ -154,7 +221,16 @@ const MapComponent = () => {
 
       {/* Render GeoJSON Layers */}
       {geojsons.map((g) => (
-        <GeoJSON key={g.id} data={g.data}>
+        <GeoJSON
+          key={g.id}
+          data={g.data}
+          style={() => ({
+            color: getGeoJsonColor(g.kategori),
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.5,
+          })}
+        >
           <Popup>{g.nama}</Popup>
         </GeoJSON>
       ))}

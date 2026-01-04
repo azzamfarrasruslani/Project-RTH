@@ -39,6 +39,7 @@ const EditDataRTH = () => {
   const [geojsonFile, setGeojsonFile] = useState(null);
   const [existingGeojson, setExistingGeojson] = useState(null);
   const [geojsonPreview, setGeojsonPreview] = useState(null);
+  const [customKategori, setCustomKategori] = useState("");
 
   // Fetch Data
   useEffect(() => {
@@ -59,6 +60,22 @@ const EditDataRTH = () => {
             tahun: data.tahun || "",
             galeri: data.galeri || [], // Ensure array
           });
+
+          // Check if category is standard
+          const standardCategories = [
+            "Taman Kota",
+            "Hutan Kota",
+            "Jalur Hijau",
+            "Pemakaman",
+            "RTH Private",
+            "Taman Wisata Alam",
+          ];
+
+          if (!standardCategories.includes(data.kategori)) {
+            setFormData((prev) => ({ ...prev, kategori: "Lainnya" }));
+            setCustomKategori(data.kategori);
+          }
+
           if (data.foto_utama) {
             setExistingImage(data.foto_utama);
           }
@@ -144,10 +161,15 @@ const EditDataRTH = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const dataToSubmit = { ...formData };
+    if (dataToSubmit.kategori === "Lainnya") {
+      dataToSubmit.kategori = customKategori;
+    }
+
     try {
       await rthService.update(
         id,
-        { ...formData, geojsonFile },
+        { ...dataToSubmit, geojsonFile },
         imageFile,
         galleryFiles
       );
@@ -217,15 +239,31 @@ const EditDataRTH = () => {
                   <select
                     name="kategori"
                     value={formData.kategori}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData((prev) => ({ ...prev, kategori: val }));
+                      if (val !== "Lainnya") setCustomKategori("");
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
                   >
                     <option>Taman Kota</option>
                     <option>Hutan Kota</option>
                     <option>Jalur Hijau</option>
                     <option>Pemakaman</option>
+                    <option>RTH Private</option>
+                    <option>Taman Wisata Alam</option>
                     <option>Lainnya</option>
                   </select>
+                  {formData.kategori === "Lainnya" && (
+                    <input
+                      type="text"
+                      value={customKategori}
+                      onChange={(e) => setCustomKategori(e.target.value)}
+                      placeholder="Masukkan Kategori Lainnya"
+                      className="mt-2 w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all"
+                      required
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

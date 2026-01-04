@@ -141,7 +141,7 @@ const DetailRTH = () => {
 
         {/* Right Column: Facilities & More */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 sticky top-24">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 top-24">
             <h3 className="text-lg font-bold text-primary-dark mb-4 border-b border-gray-100 pb-2">
               Fasilitas Tersedia
             </h3>

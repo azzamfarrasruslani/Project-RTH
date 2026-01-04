@@ -28,6 +28,8 @@ const AddDataRTH = () => {
     fasilitas: "",
   });
 
+  const [customKategori, setCustomKategori] = useState("");
+
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [galleryFiles, setGalleryFiles] = useState([]);
@@ -84,9 +86,14 @@ const AddDataRTH = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const dataToSubmit = { ...formData };
+    if (dataToSubmit.kategori === "Lainnya") {
+      dataToSubmit.kategori = customKategori;
+    }
+
     try {
       await rthService.create(
-        { ...formData, geojsonFile },
+        { ...dataToSubmit, geojsonFile },
         imageFile,
         galleryFiles
       );
@@ -159,6 +166,8 @@ const AddDataRTH = () => {
                     <option>Hutan Kota</option>
                     <option>Jalur Hijau</option>
                     <option>Pemakaman</option>
+                    <option>RTH Private</option>
+                    <option>Taman Wisata Alam</option>
                     <option>Lainnya</option>
                   </select>
                 </div>

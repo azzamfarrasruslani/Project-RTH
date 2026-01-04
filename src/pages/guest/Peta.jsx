@@ -9,10 +9,14 @@ import {
 } from "react-icons/fa";
 
 const Peta = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     taman: true,
     hutan: true,
     jalur: true,
+    private: true,
+    wisata: true,
+    lainnya: true,
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -35,7 +39,6 @@ const Peta = () => {
       )}
 
       {/* Sidebar Filters */}
-      {/* Sidebar Filters - Floating on Desktop */}
       <aside
         className={`
           absolute z-50 bg-white shadow-2xl rounded-tr-2xl rounded-br-2xl lg:rounded-2xl
@@ -65,6 +68,16 @@ const Peta = () => {
           >
             <FaTimes size={20} />
           </button>
+        </div>
+
+        <div className="px-6 py-2">
+          <input
+            type="text"
+            placeholder="Cari lokasi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-primary-dark focus:border-primary-dark outline-none transition-all text-sm"
+          />
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 pt-2 custom-scrollbar space-y-6">
@@ -110,6 +123,42 @@ const Peta = () => {
                   Jalur Hijau
                 </span>
               </label>
+              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                <input
+                  type="checkbox"
+                  name="private"
+                  checked={filters.private}
+                  onChange={handleFilterChange}
+                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
+                />
+                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
+                  RTH Private
+                </span>
+              </label>
+              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                <input
+                  type="checkbox"
+                  name="wisata"
+                  checked={filters.wisata}
+                  onChange={handleFilterChange}
+                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
+                />
+                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
+                  Taman Wisata Alam
+                </span>
+              </label>
+              <label className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                <input
+                  type="checkbox"
+                  name="lainnya"
+                  checked={filters.lainnya}
+                  onChange={handleFilterChange}
+                  className="form-checkbox h-5 w-5 text-primary-dark rounded border-gray-300 focus:ring-primary-dark transition duration-150 ease-in-out"
+                />
+                <span className="text-teks group-hover:text-primary-dark transition-colors font-medium">
+                  Lainnya
+                </span>
+              </label>
             </div>
           </div>
 
@@ -133,6 +182,18 @@ const Peta = () => {
                 <div className="w-3 h-3 rounded-full bg-lime-400 shadow-sm ring-2 ring-lime-100"></div>
                 <span className="text-teks font-medium">Jalur Hijau</span>
               </div>
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
+                <div className="w-3 h-3 rounded-full bg-orange-400 shadow-sm ring-2 ring-orange-100"></div>
+                <span className="text-teks font-medium">RTH Private</span>
+              </div>
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
+                <div className="w-3 h-3 rounded-full bg-teal-500 shadow-sm ring-2 ring-teal-100"></div>
+                <span className="text-teks font-medium">Taman Wisata</span>
+              </div>
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50/50">
+                <div className="w-3 h-3 rounded-full bg-gray-500 shadow-sm ring-2 ring-gray-100"></div>
+                <span className="text-teks font-medium">Lainnya</span>
+              </div>
             </div>
           </div>
 
@@ -151,10 +212,10 @@ const Peta = () => {
 
       {/* Map Area */}
       <main className="w-full h-full bg-white relative">
-        <MapComponent />
-        
+        <MapComponent filters={filters} searchTerm={searchTerm} />
+
         {/* Mobile Filter Toggle */}
-        <button 
+        <button
           onClick={() => setIsSidebarOpen(true)}
           className="lg:hidden absolute bottom-6 right-6 bg-primary-dark text-white p-4 rounded-full shadow-lg z-[30] hover:scale-105 active:scale-95 transition-all duration-200 group"
           aria-label="Filter Peta"
