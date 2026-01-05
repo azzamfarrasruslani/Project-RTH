@@ -264,8 +264,11 @@ const Beranda = () => {
               </p>
             </div>
 
-            {/* Card 4 */}
-            <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 text-left group">
+            {/* Card 4 - Wrapped with Link */}
+            <Link
+              to="/analisis"
+              className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 text-left group block"
+            >
               <div className="w-14 h-14 bg-primary-light rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-dark transition-colors">
                 <FaChartBar className="w-7 h-7 text-primary-dark group-hover:text-white transition-colors" />
               </div>
@@ -276,7 +279,7 @@ const Beranda = () => {
                 Akses data agregat, statistik cakupan RTH, dan tren perkembangan
                 dari tahun ke tahun.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

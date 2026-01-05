@@ -38,6 +38,18 @@ const Navbar = () => {
                 Tentang Kami
               </Link>
               <Link
+                to="/sebaran"
+                className="text-teks hover:text-primary-dark text-sm font-medium transition-colors duration-200"
+              >
+                Sebaran RTH
+              </Link>
+              <Link
+                to="/analisis"
+                className="text-teks hover:text-primary-dark text-sm font-medium transition-colors duration-200"
+              >
+                Analisis
+              </Link>
+              <Link
                 to="/peta"
                 className="text-teks hover:text-primary-dark text-sm font-medium transition-colors duration-200"
               >
@@ -90,6 +102,20 @@ const Navbar = () => {
               onClick={toggleMenu}
             >
               Tentang Kami
+            </Link>
+            <Link
+              to="/sebaran"
+              className="text-teks hover:text-primary-dark block px-3 py-2 rounded-md text-base font-medium"
+              onClick={toggleMenu}
+            >
+              Sebaran RTH
+            </Link>
+            <Link
+              to="/analisis"
+              className="text-teks hover:text-primary-dark block px-3 py-2 rounded-md text-base font-medium"
+              onClick={toggleMenu}
+            >
+              Analisis
             </Link>
             <Link
               to="/peta"

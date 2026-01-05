@@ -11,6 +11,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const Beranda = React.lazy(() => import("./pages/guest/Beranda"));
 const Peta = React.lazy(() => import("./pages/guest/Peta"));
 const DetailRTH = React.lazy(() => import("./pages/guest/DetailRTH"));
+const DaftarRTH = React.lazy(() => import("./pages/guest/DaftarRTH"));
+const Analisis = React.lazy(() => import("./pages/guest/Analisis"));
 const TentangKami = React.lazy(() => import("./pages/guest/TentangKami"));
 const Login = React.lazy(() => import("./pages/auth/Login"));
 const Dashboard = React.lazy(() => import("./pages/admin/Dashboard"));
@@ -27,6 +29,8 @@ function App() {
             <Route path="/" element={<Beranda />} />
             <Route path="/peta" element={<Peta />} />
             <Route path="/peta/:id" element={<DetailRTH />} />
+            <Route path="/sebaran" element={<DaftarRTH />} />
+            <Route path="/analisis" element={<Analisis />} />
             <Route path="/tentang" element={<TentangKami />} />
             <Route path="/error/:errorCode" element={<ErrorPage />} />
             <Route path="*" element={<ErrorPage />} />
