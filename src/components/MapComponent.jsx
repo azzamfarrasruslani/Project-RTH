@@ -34,126 +34,64 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const MapComponent = ({
-  filters = {
-    taman: true,
-    hutan: true,
-    jalur: true,
-    private: true,
-    wisata: true,
-    lainnya: true,
-  },
-  searchTerm = "",
-}) => {
+const MapComponent = ({ markers = [], selectedRth = null }) => {
   // Coordinates for Pekanbaru
   const position = [0.507068, 101.447779]; // Pekanbaru Coordinate
 
-  // Fetch Markers
-  const [markers, setMarkers] = React.useState([]);
+  // State for GeoJSONs
   const [geojsons, setGeojsons] = React.useState([]);
+  const markerRefs = React.useRef({}); // Store refs to markers
+  const mapRef = React.useRef(null); // Ref to Map instance
 
+  // Effect to load GeoJSONs when markers change
   React.useEffect(() => {
-    const fetchMarkers = async () => {
-      try {
-        const { rthService } = await import("../services/rthService");
-        const data = await rthService.getAll();
-        if (data) {
-          const mappedMarkers = data
-            .map((item) => {
-              // Determine color based on category
-              let color = "text-gray-800 bg-gray-100"; // Default/Lainnya
-              if (item.kategori === "Taman Kota")
-                color = "text-green-800 bg-green-100";
-              else if (item.kategori === "Hutan Kota")
-                color = "text-emerald-800 bg-emerald-100";
-              else if (item.kategori === "Jalur Hijau")
-                color = "text-lime-800 bg-lime-100";
-              else if (item.kategori === "RTH Private")
-                color = "text-orange-800 bg-orange-100";
-              else if (item.kategori === "Taman Wisata Alam")
-                color = "text-teal-800 bg-teal-100";
-              else if (item.kategori === "Pemakaman")
-                color = "text-indigo-800 bg-indigo-100";
+    const fetchGeoJSONs = async () => {
+      const geojsonPromises = markers
+        .filter((m) => m.geojson_url)
+        .map(async (m) => {
+          try {
+            const res = await fetch(m.geojson_url);
+            const json = await res.json();
+            return {
+              id: m.id,
+              data: json,
+              nama: m.nama,
+              kategori: m.kategori,
+            };
+          } catch (err) {
+            console.error("Failed to load geojson for", m.nama, err);
+            return null;
+          }
+        });
 
-              return {
-                id: item.id,
-                nama: item.nama,
-                kategori: item.kategori,
-                luas: item.luas + " Ha",
-                posisi: [item.lat || 0, item.long || 0],
-                geojson_url: item.geojson_file, // Store URL
-                color: color,
-              };
-            })
-            .filter((m) => m.posisi[0] !== 0); // Filter invalid coordinates
-          setMarkers(mappedMarkers);
-
-          // Fetch GeoJSON contents concurrently
-          const geojsonPromises = mappedMarkers
-            .filter((m) => m.geojson_url)
-            .map(async (m) => {
-              try {
-                const res = await fetch(m.geojson_url);
-                const json = await res.json();
-                return {
-                  id: m.id,
-                  data: json,
-                  nama: m.nama,
-                  kategori: m.kategori,
-                };
-              } catch (err) {
-                console.error("Failed to load geojson for", m.nama, err);
-                return null;
-              }
-            });
-
-          const loadedGeojsons = (await Promise.all(geojsonPromises)).filter(
-            Boolean
-          );
-          setGeojsons(loadedGeojsons);
-        }
-      } catch (e) {
-        console.error("Error loading markers:", e);
-      }
+      const loadedGeojsons = (await Promise.all(geojsonPromises)).filter(
+        Boolean
+      );
+      setGeojsons(loadedGeojsons);
     };
-    fetchMarkers();
-  }, []);
 
-  // Filter Logic
-  const filteredMarkers = markers.filter((item) => {
-    // 1. Search Filter
-    const matchesSearch = item.nama
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    if (markers.length > 0) {
+      fetchGeoJSONs();
+    }
+  }, [markers]);
 
-    // 2. Category Filter
-    let matchesCategory = false;
-    if (filters.taman && item.kategori === "Taman Kota") matchesCategory = true;
-    else if (filters.hutan && item.kategori === "Hutan Kota")
-      matchesCategory = true;
-    else if (filters.jalur && item.kategori === "Jalur Hijau")
-      matchesCategory = true;
-    else if (filters.private && item.kategori === "RTH Private")
-      matchesCategory = true;
-    else if (filters.wisata && item.kategori === "Taman Wisata Alam")
-      matchesCategory = true;
-    else if (filters.pemakaman && item.kategori === "Pemakaman")
-      matchesCategory = true;
-    else if (
-      filters.lainnya &&
-      ![
-        "Taman Kota",
-        "Hutan Kota",
-        "Jalur Hijau",
-        "RTH Private",
-        "Taman Wisata Alam",
-        "Pemakaman",
-      ].includes(item.kategori)
-    )
-      matchesCategory = true;
+  // Effect to handle selection (Search)
+  React.useEffect(() => {
+    if (selectedRth && mapRef.current) {
+      // 1. Fly to location
+      mapRef.current.flyTo(selectedRth.posisi, 17, {
+        duration: 1.5,
+      });
 
-    return matchesSearch && matchesCategory;
-  });
+      // 2. Open Popup
+      const marker = markerRefs.current[selectedRth.id];
+      if (marker) {
+        setTimeout(() => {
+          marker.openPopup();
+        }, 1000); // Wait for flyTo or just a slight delay for better UX
+      }
+    }
+  }, [selectedRth]);
 
   // Helper to get GeoJSON Color based on category
   const getGeoJsonColor = (kategori) => {
@@ -225,6 +163,7 @@ const MapComponent = ({
       zoom={13}
       scrollWheelZoom={true}
       className="h-full w-full rounded-none lg:rounded-2xl z-0"
+      ref={mapRef}
     >
       <LayersControl position="topright">
         {/* Basemap Options */}
@@ -251,7 +190,7 @@ const MapComponent = ({
       </LayersControl>
 
       {/* RTH Markers */}
-      {filteredMarkers.map((item) => (
+      {markers.map((item) => (
         <Marker
           key={item.id}
           position={item.posisi}
@@ -259,6 +198,7 @@ const MapComponent = ({
             getGeoJsonColor(item.kategori),
             getCategoryIcon(item.kategori)
           )}
+          ref={(el) => (markerRefs.current[item.id] = el)}
         >
           <Popup className="font-outfit">
             <div className="min-w-[160px]">
@@ -275,7 +215,8 @@ const MapComponent = ({
               </p>
               <a
                 href={`/peta/${item.id}`}
-                className="block w-full text-center bg-primary-dark hover:bg-green-800 text-white text-xs font-medium py-1.5 rounded transition-colors"
+                className="block w-full text-center bg-primary-dark hover:bg-green-800 !text-white text-xs font-medium py-1.5 rounded transition-colors"
+                style={{ color: "white" }}
               >
                 Lihat Detail
               </a>
@@ -286,7 +227,7 @@ const MapComponent = ({
 
       {/* Render GeoJSON Layers */}
       {geojsons
-        .filter((g) => filteredMarkers.some((m) => m.id === g.id))
+        .filter((g) => markers.some((m) => m.id === g.id))
         .map((g) => (
           <GeoJSON
             key={g.id}

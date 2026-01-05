@@ -16,6 +16,12 @@ import {
 
 const Peta = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [markers, setMarkers] = useState([]);
+  const [filteredMarkers, setFilteredMarkers] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedRth, setSelectedRth] = useState(null);
+
   const [filters, setFilters] = useState({
     taman: true,
     hutan: true,
@@ -26,13 +32,107 @@ const Peta = () => {
     lainnya: true,
   });
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Fetch Data
+  React.useEffect(() => {
+    const fetchMarkers = async () => {
+      try {
+        const { rthService } = await import("../../services/rthService");
+        const data = await rthService.getAll();
+        if (data) {
+          const mappedMarkers = data
+            .map((item) => {
+              // Determine color based on category
+              let color = "text-gray-800 bg-gray-100"; // Default/Lainnya
+              if (item.kategori === "Taman Kota")
+                color = "text-green-800 bg-green-100";
+              else if (item.kategori === "Hutan Kota")
+                color = "text-emerald-800 bg-emerald-100";
+              else if (item.kategori === "Jalur Hijau")
+                color = "text-lime-800 bg-lime-100";
+              else if (item.kategori === "RTH Private")
+                color = "text-orange-800 bg-orange-100";
+              else if (item.kategori === "Taman Wisata Alam")
+                color = "text-teal-800 bg-teal-100";
+              else if (item.kategori === "Pemakaman")
+                color = "text-indigo-800 bg-indigo-100";
 
-  const handleFilterChange = (e) => {
-    setFilters({
-      ...filters,
-      [e.target.name]: e.target.checked,
+              return {
+                id: item.id,
+                nama: item.nama,
+                kategori: item.kategori,
+                luas: item.luas + " Ha",
+                posisi: [item.lat || 0, item.long || 0],
+                geojson_url: item.geojson_file,
+                color: color,
+              };
+            })
+            .filter((m) => m.posisi[0] !== 0);
+          setMarkers(mappedMarkers);
+          setFilteredMarkers(mappedMarkers);
+        }
+      } catch (e) {
+        console.error("Error loading markers:", e);
+      }
+    };
+    fetchMarkers();
+  }, []);
+
+  // Filter Logic
+  React.useEffect(() => {
+    let result = markers;
+
+    // 1. Category Filter
+    result = result.filter((item) => {
+      let matchesCategory = false;
+      if (filters.taman && item.kategori === "Taman Kota")
+        matchesCategory = true;
+      else if (filters.hutan && item.kategori === "Hutan Kota")
+        matchesCategory = true;
+      else if (filters.jalur && item.kategori === "Jalur Hijau")
+        matchesCategory = true;
+      else if (filters.private && item.kategori === "RTH Private")
+        matchesCategory = true;
+      else if (filters.wisata && item.kategori === "Taman Wisata Alam")
+        matchesCategory = true;
+      else if (filters.pemakaman && item.kategori === "Pemakaman")
+        matchesCategory = true;
+      else if (
+        filters.lainnya &&
+        ![
+          "Taman Kota",
+          "Hutan Kota",
+          "Jalur Hijau",
+          "RTH Private",
+          "Taman Wisata Alam",
+          "Pemakaman",
+        ].includes(item.kategori)
+      )
+        matchesCategory = true;
+      return matchesCategory;
     });
+
+    setFilteredMarkers(result);
+  }, [filters, markers]);
+
+  // Search Logic & Suggestions
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.length > 0) {
+      const matches = markers.filter((item) =>
+        item.nama.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(matches);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (rth) => {
+    setSearchTerm(rth.nama);
+    setSuggestions([]);
+    setSelectedRth(rth); // Notify MapComponent
   };
 
   return (
@@ -66,7 +166,7 @@ const Peta = () => {
               Peta Sebaran
             </h1>
             <p className="text-sm text-gray-500 leading-relaxed font-outfit">
-              Eksplorasi Ruang Terbuka Hijau
+              Eksplorasi <strong>{markers.length} Titik</strong> RTH ({markers.reduce((acc, curr) => acc + (parseFloat(curr.luas.replace(" Ha", "").replace(",", ".")) || 0), 0).toLocaleString('id-ID', { maximumFractionDigits: 2 })} Ha)
             </p>
           </div>
           <button
@@ -79,8 +179,8 @@ const Peta = () => {
 
         {/* Search & Filter Content */}
         <div className="flex-1 overflow-y-auto px-6 py-2 pb-6 custom-scrollbar space-y-6">
-          {/* Search Input */}
-          <div className="relative group">
+          {/* Search Input with Suggestions */}
+          <div className="relative group z-50">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FaTree className="text-gray-400 group-focus-within:text-primary-dark transition-colors" />
             </div>
@@ -88,9 +188,42 @@ const Peta = () => {
               type="text"
               placeholder="Cari lokasi RTH..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
+              onFocus={() => {
+                if (searchTerm.length > 0) {
+                  const matches = markers.filter((item) =>
+                    item.nama.toLowerCase().includes(searchTerm.toLowerCase())
+                  );
+                  setSuggestions(matches);
+                }
+              }}
+              onBlur={() => setTimeout(() => setSuggestions([]), 200)}
               className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-dark/20 focus:border-primary-dark outline-none transition-all text-sm font-medium font-outfit shadow-sm"
             />
+            {/* Suggestions Dropdown */}
+            {suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-60 overflow-y-auto z-50">
+                {suggestions.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSelectSuggestion(item)}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors border-b border-gray-50 last:border-0"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+                      <FaTree size={12} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800 font-outfit line-clamp-1">
+                        {item.nama}
+                      </p>
+                      <p className="text-xs text-gray-500 font-outfit">
+                        {item.kategori}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Filter Grid */}
@@ -113,6 +246,7 @@ const Peta = () => {
                   color: "bg-green-500",
                   iconColor: "text-green-600",
                   activeClass: "border-green-500 bg-green-50 text-green-800",
+                  filterKey: "Taman Kota",
                 },
                 {
                   id: "hutan",
@@ -122,6 +256,7 @@ const Peta = () => {
                   iconColor: "text-emerald-700",
                   activeClass:
                     "border-emerald-700 bg-emerald-50 text-emerald-800",
+                  filterKey: "Hutan Kota",
                 },
                 {
                   id: "jalur",
@@ -130,6 +265,7 @@ const Peta = () => {
                   color: "bg-lime-500",
                   iconColor: "text-lime-600",
                   activeClass: "border-lime-500 bg-lime-50 text-lime-800",
+                  filterKey: "Jalur Hijau",
                 },
                 {
                   id: "private",
@@ -138,6 +274,7 @@ const Peta = () => {
                   color: "bg-orange-400",
                   iconColor: "text-orange-500",
                   activeClass: "border-orange-500 bg-orange-50 text-orange-800",
+                  filterKey: "RTH Private",
                 },
                 {
                   id: "wisata",
@@ -146,6 +283,7 @@ const Peta = () => {
                   color: "bg-teal-500",
                   iconColor: "text-teal-600",
                   activeClass: "border-teal-500 bg-teal-50 text-teal-800",
+                  filterKey: "Taman Wisata Alam",
                 },
                 {
                   id: "pemakaman",
@@ -154,6 +292,7 @@ const Peta = () => {
                   color: "bg-indigo-500",
                   iconColor: "text-indigo-600",
                   activeClass: "border-indigo-500 bg-indigo-50 text-indigo-800",
+                  filterKey: "Pemakaman",
                 },
                 {
                   id: "lainnya",
@@ -162,14 +301,49 @@ const Peta = () => {
                   color: "bg-gray-500",
                   iconColor: "text-gray-500",
                   activeClass: "border-gray-500 bg-gray-50 text-gray-800",
+                  filterKey: "Lainnya",
                 },
-              ].map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() =>
-                    setFilters((prev) => ({ ...prev, [cat.id]: !prev[cat.id] }))
-                  }
-                  className={`
+              ].map((cat) => {
+                // Calculate Stats per Category
+                const stats = markers.reduce(
+                  (acc, item) => {
+                    const isMatch =
+                      cat.filterKey === "Lainnya"
+                        ? ![
+                            "Taman Kota",
+                            "Hutan Kota",
+                            "Jalur Hijau",
+                            "RTH Private",
+                            "Taman Wisata Alam",
+                            "Pemakaman",
+                          ].includes(item.kategori)
+                        : item.kategori === cat.filterKey;
+
+                    if (isMatch) {
+                      const area =
+                        parseFloat(
+                          item.luas.replace(" Ha", "").replace(",", ".")
+                        ) || 0;
+                      return {
+                        count: acc.count + 1,
+                        totalArea: acc.totalArea + area,
+                      };
+                    }
+                    return acc;
+                  },
+                  { count: 0, totalArea: 0 }
+                );
+
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        [cat.id]: !prev[cat.id],
+                      }))
+                    }
+                    className={`
                     relative p-3 rounded-xl border text-left flex flex-col gap-3 transition-all duration-200 group
                     ${
                       filters[cat.id]
@@ -177,25 +351,42 @@ const Peta = () => {
                         : "border-gray-100 bg-white text-gray-400 hover:bg-gray-50 hover:border-gray-200"
                     }
                   `}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <cat.icon
-                      className={`text-xl transition-colors ${
-                        filters[cat.id] ? cat.iconColor : "text-gray-300"
-                      }`}
-                    />
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-300 ${
-                        filters[cat.id] ? "scale-100" : "scale-75 opacity-50"
-                      } ${cat.color}`}
-                    />
-                  </div>
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <cat.icon
+                        className={`text-xl transition-colors ${
+                          filters[cat.id] ? cat.iconColor : "text-gray-300"
+                        }`}
+                      />
+                      <div className="flex flex-col items-end">
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full shadow-sm mb-1 transition-transform duration-300 ${
+                            filters[cat.id]
+                              ? "scale-100"
+                              : "scale-75 opacity-50"
+                          } ${cat.color}`}
+                        />
+                        <span className="text-[10px] font-bold text-gray-400">
+                          {stats.count} Lokasi
+                        </span>
+                      </div>
+                    </div>
 
-                  <span className="text-xs font-bold font-outfit truncate w-full block">
-                    {cat.label}
-                  </span>
-                </button>
-              ))}
+                    <div className="w-full">
+                      <span className="text-xs font-bold font-outfit truncate w-full block">
+                        {cat.label}
+                      </span>
+                      <span className="text-[10px] text-gray-500 font-medium">
+                        Total:{" "}
+                        {stats.totalArea.toLocaleString("id-ID", {
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        Ha
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -220,7 +411,7 @@ const Peta = () => {
 
       {/* Map Area */}
       <main className="w-full h-full bg-white relative">
-        <MapComponent filters={filters} searchTerm={searchTerm} />
+        <MapComponent markers={filteredMarkers} selectedRth={selectedRth} />
 
         {/* Mobile Filter Toggle */}
         <button

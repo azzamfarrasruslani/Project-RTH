@@ -64,13 +64,28 @@ const DataRTH = () => {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page on search
   };
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const filteredData = dataRTH.filter(
     (item) =>
       item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.lokasi.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="space-y-8 font-outfit">
@@ -146,14 +161,14 @@ const DataRTH = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredData.length > 0 ? (
-                filteredData.map((item, index) => (
+              {currentItems.length > 0 ? (
+                currentItems.map((item, index) => (
                   <tr
                     key={item.id}
                     className="hover:bg-gray-50/80 transition-colors group"
                   >
                     <td className="px-6 py-4 font-medium text-gray-400">
-                      {index + 1}
+                      {indexOfFirstItem + index + 1}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -245,34 +260,54 @@ const DataRTH = () => {
           </table>
         </div>
 
-        {/* Pagination (Simple UI) */}
-        <div className="p-4 border-t border-gray-50 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            Menampilkan{" "}
-            <span className="font-semibold text-gray-800">
-              1-{filteredData.length}
-            </span>{" "}
-            dari{" "}
-            <span className="font-semibold text-gray-800">
-              {dataRTH.length}
-            </span>{" "}
-            data
-          </p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 text-sm border border-gray-200 rounded-lg text-gray-500 disabled:opacity-50 cursor-not-allowed">
-              Previous
-            </button>
-            <button className="px-3 py-1 text-sm bg-primary-dark text-white rounded-lg shadow-sm">
-              1
-            </button>
-            <button className="px-3 py-1 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">
-              2
-            </button>
-            <button className="px-3 py-1 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">
-              Next
-            </button>
+        {/* Pagination (Dynamic UI) */}
+        {filteredData.length > 0 && (
+          <div className="p-4 border-t border-gray-50 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Menampilkan{" "}
+              <span className="font-semibold text-gray-800">
+                {indexOfFirstItem + 1}-
+                {Math.min(indexOfLastItem, filteredData.length)}
+              </span>{" "}
+              dari{" "}
+              <span className="font-semibold text-gray-800">
+                {filteredData.length}
+              </span>{" "}
+              data
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm border border-gray-200 rounded-lg text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Previous
+              </button>
+
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => paginate(i + 1)}
+                  className={`px-3 py-1 text-sm rounded-lg shadow-sm transition-colors ${
+                    currentPage === i + 1
+                      ? "bg-primary-dark text-white border-primary-dark"
+                      : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

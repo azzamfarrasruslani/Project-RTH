@@ -39,6 +39,10 @@ const EditDataRTH = () => {
   const [existingGeojson, setExistingGeojson] = useState(null);
   const [geojsonPreview, setGeojsonPreview] = useState(null);
   const [customKategori, setCustomKategori] = useState("");
+
+  // Drag State
+  const [isDraggingMain, setIsDraggingMain] = useState(false);
+  const [isDraggingGallery, setIsDraggingGallery] = useState(false);
   const [categories, setCategories] = useState([
     "Taman Kota",
     "Hutan Kota",
@@ -183,6 +187,50 @@ const EditDataRTH = () => {
       ...prev,
       galeri: prev.galeri.filter((item) => item !== url),
     }));
+  };
+
+  // Drag Handlers
+  const handleDragOverMain = (e) => {
+    e.preventDefault();
+    setIsDraggingMain(true);
+  };
+
+  const handleDragLeaveMain = (e) => {
+    e.preventDefault();
+    setIsDraggingMain(false);
+  };
+
+  const handleDropMain = (e) => {
+    e.preventDefault();
+    setIsDraggingMain(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleDragOverGallery = (e) => {
+    e.preventDefault();
+    setIsDraggingGallery(true);
+  };
+
+  const handleDragLeaveGallery = (e) => {
+    e.preventDefault();
+    setIsDraggingGallery(false);
+  };
+
+  const handleDropGallery = (e) => {
+    e.preventDefault();
+    setIsDraggingGallery(false);
+    const files = Array.from(e.dataTransfer.files).filter((file) =>
+      file.type.startsWith("image/")
+    );
+    if (files.length > 0) {
+      setGalleryFiles((prev) => [...prev, ...files]);
+      const newPreviews = files.map((file) => URL.createObjectURL(file));
+      setGalleryPreviews((prev) => [...prev, ...newPreviews]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -488,18 +536,35 @@ const EditDataRTH = () => {
                 Foto Lokasi
               </h3>
 
-              <label className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
+              <label
+                onDragOver={handleDragOverMain}
+                onDragLeave={handleDragLeaveMain}
+                onDrop={handleDropMain}
+                className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors cursor-pointer group ${
+                  isDraggingMain
+                    ? "border-primary-dark bg-green-50"
+                    : "border-gray-300 hover:bg-gray-50"
+                }`}
+              >
                 <input
                   type="file"
                   onChange={handleImageChange}
                   accept="image/*"
                   className="hidden"
                 />
-                <div className="w-12 h-12 bg-primary-light/20 text-primary-dark rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-transform group-hover:scale-110 ${
+                    isDraggingMain
+                      ? "bg-primary-dark text-white"
+                      : "bg-primary-light/20 text-primary-dark"
+                  }`}
+                >
                   <FaCloudUploadAlt className="text-xl" />
                 </div>
                 <p className="text-sm font-medium text-gray-700">
-                  Klik atau drag foto ke sini
+                  {isDraggingMain
+                    ? "Lepaskan foto di sini"
+                    : "Klik atau drag foto ke sini"}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
                   Maksimal 5MB (JPG, PNG)
@@ -599,7 +664,16 @@ const EditDataRTH = () => {
               )}
 
               {/* New Uploads */}
-              <label className="border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group mb-4">
+              <label
+                onDragOver={handleDragOverGallery}
+                onDragLeave={handleDragLeaveGallery}
+                onDrop={handleDropGallery}
+                className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center transition-colors cursor-pointer group mb-4 ${
+                  isDraggingGallery
+                    ? "border-primary-dark bg-green-50"
+                    : "border-gray-300 hover:bg-gray-50"
+                }`}
+              >
                 <input
                   type="file"
                   multiple
@@ -607,12 +681,22 @@ const EditDataRTH = () => {
                   accept="image/*"
                   className="hidden"
                 />
-                <div className="flex items-center gap-2 text-primary-dark mb-1">
+                <div
+                  className={`flex items-center gap-2 mb-1 ${
+                    isDraggingGallery
+                      ? "text-primary-dark"
+                      : "text-primary-dark"
+                  }`}
+                >
                   <FaCloudUploadAlt />
-                  <span className="text-sm font-medium">Tambah Foto Baru</span>
+                  <span className="text-sm font-medium">
+                    {isDraggingGallery ? "Lepaskan Foto" : "Tambah Foto Baru"}
+                  </span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Klik untuk upload lebih banyak
+                  {isDraggingGallery
+                    ? "Foto akan ditambahkan"
+                    : "Klik atau drag banyak foto"}
                 </p>
               </label>
 
