@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import {
   FaTree,
   FaMapMarkedAlt,
@@ -10,6 +11,41 @@ import {
 } from "react-icons/fa";
 
 const Beranda = () => {
+  const [stats, setStats] = useState({
+    count: 0,
+    area: 0,
+    coverage: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { rthService } = await import("../../services/rthService");
+        const data = await rthService.getAll();
+        if (data) {
+          const count = data.length;
+          const area = data.reduce((acc, curr) => {
+            const val = curr.luas;
+            const str =
+              typeof val === "string"
+                ? val.replace(",", ".")
+                : String(val || 0);
+            return acc + (parseFloat(str) || 0);
+          }, 0);
+
+          // Pekanbaru Area ~63,226 Ha.
+          // Coverage = (Total RTH Area / Total City Area) * 100
+          const coverage = (area / 63226) * 100;
+
+          setStats({ count, area, coverage });
+        }
+      } catch (error) {
+        console.error("Error fetching hero stats:", error);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <div className="w-full">
       {/* Hero Section */}
@@ -62,7 +98,7 @@ const Beranda = () => {
               <div className="grid grid-cols-3 gap-8 border-t border-gray-100 pt-8">
                 <div>
                   <h4 className="text-3xl font-bold text-primary-dark font-outfit">
-                    23+
+                    {stats.count}+
                   </h4>
                   <p className="text-sm text-teks-samping mt-1">
                     Ruang Terbuka Hijau
@@ -70,13 +106,21 @@ const Beranda = () => {
                 </div>
                 <div>
                   <h4 className="text-3xl font-bold text-primary-dark font-outfit">
-                    23Ha
+                    {stats.area.toLocaleString("id-ID", {
+                      maximumFractionDigits: 1,
+                    })}
+                    Ha
                   </h4>
                   <p className="text-sm text-teks-samping mt-1">Total Area</p>
                 </div>
                 <div>
                   <h4 className="text-3xl font-bold text-primary-dark font-outfit">
-                    70%
+                    {stats.coverage < 0.01 && stats.coverage > 0
+                      ? "< 0.01"
+                      : stats.coverage.toLocaleString("id-ID", {
+                          maximumFractionDigits: 2,
+                        })}
+                    %
                   </h4>
                   <p className="text-sm text-teks-samping mt-1">Cakupan RTH</p>
                 </div>
