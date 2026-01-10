@@ -12,7 +12,9 @@ import {
   FaMountain,
   FaShapes,
   FaMonument,
+  FaMap,
 } from "react-icons/fa";
+import { GiTombstone } from "react-icons/gi";
 
 const Peta = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +23,7 @@ const Peta = () => {
   const [filteredMarkers, setFilteredMarkers] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [selectedRth, setSelectedRth] = useState(null);
+  const [pekanbaruBoundary, setPekanbaruBoundary] = useState(null);
 
   const [filters, setFilters] = useState({
     taman: true,
@@ -30,6 +33,7 @@ const Peta = () => {
     wisata: true,
     pemakaman: true,
     lainnya: true,
+    boundary: true,
   });
 
   // Fetch Data
@@ -63,6 +67,8 @@ const Peta = () => {
                 luas: item.luas + " Ha",
                 posisi: [item.lat || 0, item.long || 0],
                 geojson_url: item.geojson_file,
+                gambar: item.foto_utama,
+                alamat: item.alamat,
                 color: color,
               };
             })
@@ -75,6 +81,26 @@ const Peta = () => {
       }
     };
     fetchMarkers();
+
+    // Fetch Pekanbaru Boundary
+    fetch("/geojson_PKU/Pekanbaru.geojson")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Boundary data loaded:", data);
+        // Filter only Pekanbaru features
+        const pekanbaruFeatures = data.features.filter((feature) => {
+          const kabupaten = feature.properties?.WADMKK || "";
+          return kabupaten.toUpperCase().includes("PEKANBARU");
+        });
+
+        const filteredData = {
+          ...data,
+          features: pekanbaruFeatures,
+        };
+
+        setPekanbaruBoundary(filteredData);
+      })
+      .catch((err) => console.error("Error loading boundary:", err));
   }, []);
 
   // Filter Logic
@@ -166,7 +192,18 @@ const Peta = () => {
               Peta Sebaran
             </h1>
             <p className="text-sm text-gray-500 leading-relaxed font-outfit">
-              Eksplorasi <strong>{markers.length} Titik</strong> RTH ({markers.reduce((acc, curr) => acc + (parseFloat(curr.luas.replace(" Ha", "").replace(",", ".")) || 0), 0).toLocaleString('id-ID', { maximumFractionDigits: 2 })} Ha)
+              Eksplorasi <strong>{markers.length} Titik</strong> RTH (
+              {markers
+                .reduce(
+                  (acc, curr) =>
+                    acc +
+                    (parseFloat(
+                      curr.luas.replace(" Ha", "").replace(",", ".")
+                    ) || 0),
+                  0
+                )
+                .toLocaleString("id-ID", { maximumFractionDigits: 2 })}{" "}
+              Ha)
             </p>
           </div>
           <button
@@ -288,7 +325,7 @@ const Peta = () => {
                 {
                   id: "pemakaman",
                   label: "Pemakaman",
-                  icon: FaMonument,
+                  icon: GiTombstone,
                   color: "bg-indigo-500",
                   iconColor: "text-indigo-600",
                   activeClass: "border-indigo-500 bg-indigo-50 text-indigo-800",
@@ -303,36 +340,49 @@ const Peta = () => {
                   activeClass: "border-gray-500 bg-gray-50 text-gray-800",
                   filterKey: "Lainnya",
                 },
+                {
+                  id: "boundary",
+                  label: "Batas Wilayah",
+                  icon: FaMap,
+                  color: "bg-slate-500",
+                  iconColor: "text-slate-600",
+                  activeClass: "border-slate-500 bg-slate-50 text-slate-800",
+                  filterKey: "BOUNDARY",
+                },
               ].map((cat) => {
                 // Calculate Stats per Category
-                const stats = markers.reduce(
-                  (acc, item) => {
-                    const isMatch =
-                      cat.filterKey === "Lainnya"
-                        ? ![
-                            "Taman Kota",
-                            "Hutan Kota",
-                            "Jalur Hijau",
-                            "RTH Private",
-                            "Taman Wisata Alam",
-                            "Pemakaman",
-                          ].includes(item.kategori)
-                        : item.kategori === cat.filterKey;
+                let stats = { count: 0, luas: 0 };
 
-                    if (isMatch) {
-                      const area =
-                        parseFloat(
-                          item.luas.replace(" Ha", "").replace(",", ".")
-                        ) || 0;
-                      return {
-                        count: acc.count + 1,
-                        totalArea: acc.totalArea + area,
-                      };
-                    }
-                    return acc;
-                  },
-                  { count: 0, totalArea: 0 }
-                );
+                if (cat.id === "boundary") {
+                  // Special case for boundary
+                  stats = { count: 1, luas: 632.26 }; // Approximate Pekanbaru area or static
+                } else {
+                  stats = markers.reduce(
+                    (acc, item) => {
+                      const isMatch =
+                        cat.filterKey === "Lainnya"
+                          ? ![
+                              "Taman Kota",
+                              "Hutan Kota",
+                              "Jalur Hijau",
+                              "RTH Private",
+                              "Taman Wisata Alam",
+                              "Pemakaman",
+                            ].includes(item.kategori)
+                          : item.kategori === cat.filterKey;
+
+                      if (isMatch) {
+                        acc.count += 1;
+                        acc.luas +=
+                          parseFloat(
+                            item.luas.replace(" Ha", "").replace(",", ".")
+                          ) || 0;
+                      }
+                      return acc;
+                    },
+                    { count: 0, luas: 0 }
+                  );
+                }
 
                 return (
                   <button
@@ -378,7 +428,7 @@ const Peta = () => {
                       </span>
                       <span className="text-[10px] text-gray-500 font-medium">
                         Total:{" "}
-                        {stats.totalArea.toLocaleString("id-ID", {
+                        {stats.luas.toLocaleString("id-ID", {
                           maximumFractionDigits: 2,
                         })}{" "}
                         Ha
@@ -411,7 +461,12 @@ const Peta = () => {
 
       {/* Map Area */}
       <main className="w-full h-full bg-white relative">
-        <MapComponent markers={filteredMarkers} selectedRth={selectedRth} />
+        <MapComponent
+          markers={filteredMarkers}
+          selectedRth={selectedRth}
+          pekanbaruBoundary={pekanbaruBoundary}
+          showBoundary={filters.boundary}
+        />
 
         {/* Mobile Filter Toggle */}
         <button

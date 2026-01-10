@@ -1,31 +1,54 @@
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fredoka:wght@300..700&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&display=swap");
 @import "tailwindcss";
 
 @theme {
   --font-outfit: "Outfit", sans-serif;
-  --font-poppins: "Poppins", sans-serif;
-  --font-poppins-extrabold: "Poppins-ExtraBold", sans-serif;
-
-  --color-primary-dark: #15382D;
-  --color-primary-light: #F2FCE2;
-  --color-accent: #C1E1C1;
-  --color-text-dark: #1F2937;
-  --color-text-light: #F9FAFB;
-  --color-white: #FFFFFF;
-  
-  --color-customBlue-100: #3361ac; 
-  --color-latar: #F2FCE2; 
-  --color-teks: #1F2937;
-  --color-teks-samping: #4B5563;
-  --color-garis: #E5E7EB;
-  --color-hijau: #15382D; 
-  --color-merah: #ef4444;
-  --color-biru: #3b82f6;
-  --color-kuning: #f59e0b;
+  --color-primary-dark: #123524;
+  --color-primary-green: #3e7b27;
+  --color-primary-light: #85a947;
+  --color-primary-pale: #efe3c2;
 }
 
 body {
-  @apply font-outfit bg-latar text-teks;
+  font-family: "Outfit", sans-serif;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Leaflet Custom Styles */
+.leaflet-container {
+  font-family: inherit;
+}
+
+/* Fix Popup Fonts */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-popup-content {
   margin: 0;
-  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Remove Leaflet Focus Outline */
+path.leaflet-interactive:focus {
+  outline: none;
 }

@@ -19,6 +19,7 @@ import {
   FaShapes,
   FaMonument,
 } from "react-icons/fa";
+import { GiTombstone } from "react-icons/gi";
 // Fix for default marker icon
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -34,7 +35,12 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const MapComponent = ({ markers = [], selectedRth = null }) => {
+const MapComponent = ({
+  markers = [],
+  selectedRth = null,
+  pekanbaruBoundary = null,
+  showBoundary = true,
+}) => {
   // Coordinates for Pekanbaru
   const position = [0.507068, 101.447779]; // Pekanbaru Coordinate
 
@@ -126,7 +132,7 @@ const MapComponent = ({ markers = [], selectedRth = null }) => {
       case "Taman Wisata Alam":
         return <FaMountain />;
       case "Pemakaman":
-        return <FaMonument />;
+        return <GiTombstone />;
       default:
         return <FaShapes />;
     }
@@ -167,14 +173,14 @@ const MapComponent = ({ markers = [], selectedRth = null }) => {
     >
       <LayersControl position="topright">
         {/* Basemap Options */}
-        <LayersControl.BaseLayer checked name="Esri World Imagery (Satelit)">
+        <LayersControl.BaseLayer name="Esri World Imagery (Satelit)">
           <TileLayer
             attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           />
         </LayersControl.BaseLayer>
 
-        <LayersControl.BaseLayer name="CartoDB Voyager (Modern)">
+        <LayersControl.BaseLayer checked name="CartoDB Voyager (Modern)">
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -189,6 +195,53 @@ const MapComponent = ({ markers = [], selectedRth = null }) => {
         </LayersControl.BaseLayer>
       </LayersControl>
 
+      {showBoundary && pekanbaruBoundary && (
+        <GeoJSON
+          data={pekanbaruBoundary}
+          style={{
+            color: "#64748b", // Slate 500
+            weight: 2,
+            opacity: 0.8,
+            fillOpacity: 0.05,
+            fillColor: "#64748b",
+          }}
+          interactive={true}
+          onEachFeature={(feature, layer) => {
+            const name = feature.properties?.NAMOBJ;
+            if (name) {
+              layer.bindTooltip(name, {
+                direction: "center",
+                permanent: false,
+                className:
+                  "!bg-transparent !border-0 !shadow-none font-bold text-gray-700 font-outfit text-xs",
+              });
+            }
+
+            layer.on({
+              mouseover: (e) => {
+                const layer = e.target;
+                layer.setStyle({
+                  weight: 3,
+                  color: "#475569", // Slate 600
+                  fillOpacity: 0.2, // Highlight fill
+                });
+                layer.openTooltip();
+              },
+              mouseout: (e) => {
+                const layer = e.target;
+                layer.setStyle({
+                  color: "#64748b", // Reset to original
+                  weight: 2,
+                  opacity: 0.8,
+                  fillOpacity: 0.05,
+                });
+                layer.closeTooltip();
+              },
+            });
+          }}
+        />
+      )}
+
       {/* RTH Markers */}
       {markers.map((item) => (
         <Marker
@@ -200,26 +253,65 @@ const MapComponent = ({ markers = [], selectedRth = null }) => {
           )}
           ref={(el) => (markerRefs.current[item.id] = el)}
         >
-          <Popup className="font-outfit">
-            <div className="min-w-[160px]">
-              <h3 className="font-bold text-primary-dark mb-1 text-sm">
-                {item.nama}
-              </h3>
-              <span
-                className={`${item.color} text-[10px] px-2 py-0.5 rounded-full font-medium inline-block mb-2`}
-              >
-                {item.kategori}
-              </span>
-              <p className="text-xs text-gray-600 mb-3">
-                Luas Area: <strong>{item.luas}</strong>
-              </p>
-              <a
-                href={`/peta/${item.id}`}
-                className="block w-full text-center bg-primary-dark hover:bg-green-800 !text-white text-xs font-medium py-1.5 rounded transition-colors"
-                style={{ color: "white" }}
-              >
-                Lihat Detail
-              </a>
+          <Popup className="custom-popup">
+            <div className="font-outfit p-1 min-w-[240px]">
+              {/* Image Section */}
+              <div className="w-full h-32 rounded-lg overflow-hidden mb-3 bg-gray-100 relative">
+                <img
+                  src={
+                    item.gambar
+                      ? typeof item.gambar === "string" &&
+                        item.gambar.startsWith("http")
+                        ? item.gambar
+                        : `/uploads/${item.gambar}`
+                      : "https://via.placeholder.com/400x200?text=No+Image"
+                  }
+                  alt={item.nama}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src =
+                      "https://via.placeholder.com/400x200?text=No+Image";
+                  }}
+                />
+                <div className="absolute top-2 right-2">
+                  <span className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-[10px] font-bold text-gray-700 shadow-sm border border-gray-100">
+                    {item.luas}
+                  </span>
+                </div>
+              </div>
+
+              {/* Content Section */}
+              <div className="space-y-2">
+                <div>
+                  <h3 className="font-bold text-gray-800 text-base leading-tight">
+                    {item.nama}
+                  </h3>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${item.color}`} // item.color contains bg/text classes
+                    >
+                      {item.kategori}
+                    </span>
+                  </div>
+                </div>
+
+                {item.alamat && (
+                  <p className="text-xs text-gray-500 flex items-start gap-1">
+                    <span className="mt-0.5">📍</span>
+                    <span className="line-clamp-2">{item.alamat}</span>
+                  </p>
+                )}
+
+                <div className="pt-2 mt-2 border-t border-gray-100">
+                  <a
+                    href={`/peta/${item.id}`}
+                    className="w-full bg-primary-dark hover:bg-primary-green text-white text-xs font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    Lihat Detail
+                  </a>
+                </div>
+              </div>
             </div>
           </Popup>
         </Marker>

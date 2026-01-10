@@ -16,7 +16,6 @@ export default function AdminLayout() {
       } = await supabase.auth.getUser();
       if (user) {
         // Coba ambil data detail dari tabel 'users' di public schema
-        // Asumsi: tabel 'users' punya kolom 'id' yang sama dengan auth.uid()
         const { data, error } = await supabase
           .from("users")
           .select("nama, role")
