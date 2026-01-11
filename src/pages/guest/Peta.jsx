@@ -24,6 +24,8 @@ const Peta = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [selectedRth, setSelectedRth] = useState(null);
   const [pekanbaruBoundary, setPekanbaruBoundary] = useState(null);
+  const [kecamatanList, setKecamatanList] = useState([]);
+  const [selectedKecamatan, setSelectedKecamatan] = useState("");
 
   const [filters, setFilters] = useState({
     taman: true,
@@ -99,6 +101,14 @@ const Peta = () => {
         };
 
         setPekanbaruBoundary(filteredData);
+
+        // Extract unique Kecamatan names
+        const kecamatans = [
+          ...new Set(
+            pekanbaruFeatures.map((f) => f.properties?.NAMOBJ).filter(Boolean)
+          ),
+        ].sort();
+        setKecamatanList(kecamatans);
       })
       .catch((err) => console.error("Error loading boundary:", err));
   }, []);
@@ -137,8 +147,50 @@ const Peta = () => {
       return matchesCategory;
     });
 
+    // Filter Helper: Point in Polygon
+    const isPointInFeature = (point, feature) => {
+      // point: [lat, lng]
+      const x = point[1]; // lng
+      const y = point[0]; // lat
+
+      const pointInPoly = (poly) => {
+        let inside = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const xi = poly[i][0],
+            yi = poly[i][1];
+          const xj = poly[j][0],
+            yj = poly[j][1];
+
+          const intersect =
+            yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      };
+
+      const { type, coordinates } = feature.geometry;
+      if (type === "Polygon") {
+        return pointInPoly(coordinates[0]);
+      } else if (type === "MultiPolygon") {
+        return coordinates.some((polyCoords) => pointInPoly(polyCoords[0]));
+      }
+      return false;
+    };
+
+    // 2. Kecamatan Filter (Spatial)
+    if (selectedKecamatan && pekanbaruBoundary) {
+      const targetFeature = pekanbaruBoundary.features.find(
+        (f) => f.properties?.NAMOBJ === selectedKecamatan
+      );
+      if (targetFeature) {
+        result = result.filter((item) =>
+          isPointInFeature(item.posisi, targetFeature)
+        );
+      }
+    }
+
     setFilteredMarkers(result);
-  }, [filters, markers]);
+  }, [filters, markers, selectedKecamatan, pekanbaruBoundary]);
 
   // Search Logic & Suggestions
   const handleSearchChange = (e) => {
@@ -437,6 +489,41 @@ const Peta = () => {
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Kecamatan Filter */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 font-outfit text-sm">
+                Filter Wilayah
+              </h3>
+              {selectedKecamatan && (
+                <button
+                  onClick={() => setSelectedKecamatan("")}
+                  className="text-[10px] text-red-500 hover:text-red-700 font-bold bg-red-50 px-2 py-0.5 rounded-full transition-colors"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+
+            <div className="relative">
+              <select
+                value={selectedKecamatan}
+                onChange={(e) => setSelectedKecamatan(e.target.value)}
+                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-outfit text-gray-700 focus:ring-2 focus:ring-primary-dark/20 focus:border-primary-dark outline-none appearance-none cursor-pointer transition-all hover:bg-white"
+              >
+                <option value="">Semua Kecamatan</option>
+                {kecamatanList.map((kec) => (
+                  <option key={kec} value={kec}>
+                    {kec}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                <FaMap className="text-xs" />
+              </div>
             </div>
           </div>
 
